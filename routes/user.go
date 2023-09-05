@@ -7,8 +7,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func User(route *gin.Engine, UserController controller.UserController, jwtService services.JWTService) {
-	routes := route.Group("/api/user")
+func User(route *gin.Engine, UserController controller.UserController, jwtService services.JWTService, BookController controller.BookController, ImageController controller.ImageController) {
+	routes := route.Group("/api")
 	{
 		routes.POST("", UserController.RegisterUser)
 		routes.GET("", middleware.Authenticate(jwtService), UserController.GetAllUser)
@@ -16,5 +16,8 @@ func User(route *gin.Engine, UserController controller.UserController, jwtServic
 		routes.DELETE("/", middleware.Authenticate(jwtService), UserController.DeleteUser)
 		routes.PUT("/", middleware.Authenticate(jwtService), UserController.UpdateUser)
 		routes.GET("/me", middleware.Authenticate(jwtService), UserController.MeUser)
+		routes.GET("/books", BookController.GetAllBookTitle)
+		routes.POST("/AddBooks", BookController.CreateBook)
 	}
+
 }

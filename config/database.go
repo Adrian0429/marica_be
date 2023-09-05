@@ -4,16 +4,16 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/Caknoooo/golang-clean_template/entities"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"github.com/Caknoooo/golang-clean_template/entities"
 )
 
-func SetUpDatabaseConnection() *gorm.DB{
-	if os.Getenv("APP_ENV") != "Production"{
+func SetUpDatabaseConnection() *gorm.DB {
+	if os.Getenv("APP_ENV") != "Production" {
 		err := godotenv.Load(".env")
-		if err != nil{
+		if err != nil {
 			fmt.Println(err)
 			panic(err)
 		}
@@ -34,14 +34,17 @@ func SetUpDatabaseConnection() *gorm.DB{
 		PreferSimpleProtocol: true,
 	}), &gorm.Config{})
 
-	if err != nil{
+	if err != nil {
 		fmt.Println(err)
 		panic(err)
 	}
 
 	if err := db.AutoMigrate(
 		entities.User{},
-	); err != nil{
+		entities.Book{},
+		entities.Pages{},
+		entities.Image{},
+	); err != nil {
 		fmt.Println(err)
 		panic(err)
 	}
@@ -50,7 +53,7 @@ func SetUpDatabaseConnection() *gorm.DB{
 	return db
 }
 
-func ClosDatabaseConnection(db *gorm.DB){
+func ClosDatabaseConnection(db *gorm.DB) {
 	dbSQL, err := db.DB()
 	if err != nil {
 		fmt.Println(err)
