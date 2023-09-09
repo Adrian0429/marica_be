@@ -36,3 +36,4 @@ func (br *bookRepository) GetAllBookTitle(ctx context.Context) ([]entities.Book,
 	}
 	return book, nil
 }
+

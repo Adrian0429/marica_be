@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	PATH = "Storage/Pages"
+	PATH = "storage/Pages"
 )
 
 type BookService interface {
