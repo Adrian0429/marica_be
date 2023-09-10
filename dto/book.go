@@ -7,7 +7,7 @@ import (
 
 var (
 	ErrCreateBooks = errors.New("failed to create new books")
-	ErrBookTitle   = errors.New("failed to fetch book titles")
+	ErrGetAllBooks = errors.New("failed to fetch all Books")
 	ErrCreatePages = errors.New("failed to create pages")
 )
 
@@ -16,10 +16,6 @@ type (
 		Title        string                `form:"title" json:"Title"`
 		Thumbnail    *multipart.FileHeader `form:"thumbnail" json:"Thumbnail"`
 		PagesRequest []PagesRequest        `json:"Pages"`
-	}
-
-	BookTitleRequest struct {
-		Title string `json:"Title"`
 	}
 
 	BookCreateResponse struct {
@@ -37,5 +33,9 @@ type (
 		Pages    string `json:"pages"`
 		Filename string `json:"filename"`
 		Path     string `json:"path"`
+	}
+
+	BookPagesRequest struct {
+		Path string `json:"pages_paths"`
 	}
 )

@@ -58,7 +58,7 @@ func (ic *imageController) UploadImage(ctx *gin.Context) {
 }
 
 func (ic *imageController) GetImage(ctx *gin.Context) {
-	// var image string = ""
+
 	path := ctx.Param("path")
 	dirName := ctx.Param("dirname")
 	file := ctx.Param("filename")

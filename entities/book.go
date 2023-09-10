@@ -17,5 +17,6 @@ type (
 
 		BookID uuid.UUID `gorm:"type:uuid" json:"-"`
 		Book   Book      `gorm:"foreignKey:BookID" json:"-"`
+		
 	}
 )

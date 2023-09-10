@@ -9,7 +9,8 @@ import (
 
 type BookRepository interface {
 	CreateBook(ctx context.Context, book entities.Book) (entities.Book, error)
-	GetAllBookTitle(ctx context.Context) ([]entities.Book, error)
+	GetAllBooks(ctx context.Context) ([]entities.Book, error)
+	GetBookPages(ctx context.Context, bookID string) ([]entities.Pages, error)
 }
 
 type bookRepository struct {
@@ -29,7 +30,7 @@ func (br *bookRepository) CreateBook(ctx context.Context, book entities.Book) (e
 	return book, nil
 }
 
-func (br *bookRepository) GetAllBookTitle(ctx context.Context) ([]entities.Book, error) {
+func (br *bookRepository) GetAllBooks(ctx context.Context) ([]entities.Book, error) {
 	var book []entities.Book
 	if err := br.connection.Find(&book).Error; err != nil {
 		return nil, err
@@ -37,3 +38,12 @@ func (br *bookRepository) GetAllBookTitle(ctx context.Context) ([]entities.Book,
 	return book, nil
 }
 
+func (br *bookRepository) GetBookPages(ctx context.Context, bookID string) ([]entities.Pages, error) {
+	var pages []entities.Pages
+
+	if err := br.connection.Where("book_id = ?", bookID).Find(&pages).Error; err != nil {
+		return []entities.Pages{}, err
+	}
+
+	return pages, nil
+}

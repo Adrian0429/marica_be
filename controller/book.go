@@ -12,7 +12,8 @@ import (
 
 type BookController interface {
 	CreateBook(c *gin.Context)
-	GetAllBookTitle(c *gin.Context)
+	GetAllBooks(c *gin.Context)
+	GetBookPages(c *gin.Context)
 }
 
 type bookController struct {
@@ -66,14 +67,28 @@ func (bc *bookController) CreateBook(ctx *gin.Context) {
 
 }
 
-func (bc *bookController) GetAllBookTitle(ctx *gin.Context) {
-	result, err := bc.bookService.GetAllBookTitle(ctx.Request.Context())
+func (bc *bookController) GetAllBooks(c *gin.Context) {
+	result, err := bc.bookService.GetAllBooks(c.Request.Context())
 
 	if err != nil {
 		res := utils.BuildResponseFailed("Gagal Mendapatkan List Buku", err.Error(), utils.EmptyObj{})
-		ctx.JSON(http.StatusBadRequest, res)
+		c.JSON(http.StatusBadRequest, res)
 		return
 	}
 	res := utils.BuildResponseSuccess("Berhasil Mendapatkan List Buku", result)
+	c.JSON(http.StatusOK, res)
+}
+
+func (bc *bookController) GetBookPages(ctx *gin.Context) {
+	id := ctx.Param("book_id")
+
+	Books, err := bc.bookService.GetBookPages(ctx, id)
+	if err != nil {
+		res := utils.BuildResponseFailed("Gagal Mendapatkan Detail Buku", err.Error(), utils.EmptyObj{})
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
+	res := utils.BuildResponseSuccess("Berhasil Mendapatkan Project", Books)
 	ctx.JSON(http.StatusOK, res)
+
 }

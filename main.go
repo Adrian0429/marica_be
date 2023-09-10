@@ -37,7 +37,7 @@ func main() {
 
 	server := gin.Default()
 	server.Use(middleware.CORSMiddleware())
-	routes.User(server, userController, jwtService, bookController, imageController)
+	routes.User(server, userController, jwtService, bookController)
 	routes.Image(server, imageController)
 	if err := migrations.Seeder(db); err != nil {
 		log.Fatalf("error migration seeder: %v", err)
