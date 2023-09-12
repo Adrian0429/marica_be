@@ -19,6 +19,7 @@ type BookService interface {
 	CreateBook(ctx context.Context, req dto.BookCreateRequest) (dto.BookCreateResponse, error)
 	GetAllBooks(ctx context.Context) ([]dto.BookCreateResponse, error)
 	GetBookPages(ctx context.Context, bookID string) ([]dto.BookPagesRequest, error)
+	CheckTitle(ctx context.Context, Title string) (bool, error)
 }
 
 type bookService struct {
@@ -34,14 +35,6 @@ func NewBookService(br repository.BookRepository, pr repository.PagesRepository)
 }
 
 func (bs *bookService) CreateBook(ctx context.Context, req dto.BookCreateRequest) (dto.BookCreateResponse, error) {
-	existingBook, err := bs.br.GetBookByTitle(ctx, req.Title)
-	if err != nil {
-		return dto.BookCreateResponse{}, dto.ErrGetBookByTitle
-	}
-
-	if existingBook.Title != "" {
-		return dto.BookCreateResponse{}, dto.ErrDuplicateTitle
-	}
 
 	bookId := uuid.New()
 
@@ -141,4 +134,17 @@ func (bc *bookService) GetBookPages(ctx context.Context, bookID string) ([]dto.B
 	}
 	return allPages, nil
 
+}
+
+func (bc *bookService) CheckTitle(ctx context.Context, Title string) (bool, error) {
+	title, err := bc.br.GetBookByTitle(ctx, Title)
+	if err != nil {
+		return false, err
+	}
+
+	if title.Title == "" {
+		return false, err
+	}
+
+	return true, nil
 }

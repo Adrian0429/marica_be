@@ -32,6 +32,12 @@ func (bc *bookController) CreateBook(ctx *gin.Context) {
 	ctx.PostFormArray("pages")
 	req.Title = ctx.Request.PostForm.Get("title")
 
+	if checkTitle, _ := bc.bookService.CheckTitle(ctx.Request.Context(), req.Title); checkTitle {
+		res := utils.BuildResponseFailed("Title Sudah Terdaftar", "failed", utils.EmptyObj{})
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
+
 	thumbnail, err := ctx.FormFile("thumbnail")
 	if err != nil {
 		res := utils.BuildResponseFailed("Failed to save thumbnail", err.Error(), utils.EmptyObj{})
