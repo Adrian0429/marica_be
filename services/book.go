@@ -32,7 +32,17 @@ func NewBookService(br repository.BookRepository, pr repository.PagesRepository)
 		pr: pr,
 	}
 }
+
 func (bs *bookService) CreateBook(ctx context.Context, req dto.BookCreateRequest) (dto.BookCreateResponse, error) {
+	existingBook, err := bs.br.GetBookByTitle(ctx, req.Title)
+	if err != nil {
+		return dto.BookCreateResponse{}, dto.ErrGetBookByTitle
+	}
+
+	if existingBook.Title != "" {
+		return dto.BookCreateResponse{}, dto.ErrDuplicateTitle
+	}
+
 	bookId := uuid.New()
 
 	var thumbnailPath string
@@ -40,7 +50,6 @@ func (bs *bookService) CreateBook(ctx context.Context, req dto.BookCreateRequest
 	if req.Thumbnail != nil {
 		thumbnailFilename := utils.Getextension(req.Thumbnail.Filename)
 		thumbnailPath = utils.GenerateFileName("Thumbnail", req.Title, thumbnailFilename)
-
 		thumbnailData, err := utils.IsBase64(*req.Thumbnail)
 		if err != nil {
 			return dto.BookCreateResponse{}, err

@@ -33,12 +33,17 @@ func main() {
 		bookRepository repository.BookRepository = repository.NewBookRepository(db)
 		bookService    services.BookService      = services.NewBookService(bookRepository, pageRepository)
 		bookController controller.BookController = controller.NewBookController(bookService)
+
+		adminRepository repository.UserRepository  = repository.NewUserRepository(db)
+		adminService    services.AdminService      = services.NewAdminService(adminRepository)
+		adminController controller.AdminController = controller.NewAdminController(adminService, jwtService)
 	)
 
 	server := gin.Default()
 	server.Use(middleware.CORSMiddleware())
 	routes.User(server, userController, jwtService, bookController)
 	routes.Image(server, imageController)
+	routes.Admin(server, adminController, bookController, jwtService)
 	if err := migrations.Seeder(db); err != nil {
 		log.Fatalf("error migration seeder: %v", err)
 	}

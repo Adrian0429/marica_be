@@ -20,6 +20,8 @@ type UserService interface {
 	UpdateUser(ctx context.Context, userDTO dto.UserUpdateDTO) error
 	DeleteUser(ctx context.Context, userID uuid.UUID) error
 	Verify(ctx context.Context, email string, password string) (bool, error)
+
+	
 }
 
 type userService struct {
@@ -35,7 +37,7 @@ func NewUserService(ur repository.UserRepository) UserService {
 func (us *userService) RegisterUser(ctx context.Context, userDTO dto.UserCreateDTO) (entities.User, error) {
 	user := entities.User{}
 	err := smapping.FillStruct(&user, smapping.MapFields(userDTO))
-	user.Role = "user"
+	user.Role = helpers.USER
 	if err != nil {
 		return entities.User{}, err
 	}

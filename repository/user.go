@@ -13,28 +13,31 @@ type UserRepository interface {
 	GetAllUser(ctx context.Context) ([]entities.User, error)
 	GetUserByID(ctx context.Context, userID uuid.UUID) (entities.User, error)
 	GetUserByEmail(ctx context.Context, email string) (entities.User, error)
-	UpdateUser(ctx context.Context, user entities.User) (error)
-	DeleteUser(ctx context.Context, userID uuid.UUID) (error) 
+	UpdateUser(ctx context.Context, user entities.User) error
+	DeleteUser(ctx context.Context, userID uuid.UUID) error
+
+	GetAdminByEmail(ctx context.Context, email string) (entities.User, error)
+	GetAdminByID(ctx context.Context, adminID uuid.UUID) (entities.User, error)
 }
 
 type userRepository struct {
 	connection *gorm.DB
 }
 
-func NewUserRepository(db *gorm.DB) UserRepository{
+func NewUserRepository(db *gorm.DB) UserRepository {
 	return &userRepository{
 		connection: db,
 	}
 }
 
-func (ur *userRepository) RegisterUser(ctx context.Context, user entities.User) (entities.User, error){
+func (ur *userRepository) RegisterUser(ctx context.Context, user entities.User) (entities.User, error) {
 	if err := ur.connection.Create(&user).Error; err != nil {
 		return entities.User{}, err
 	}
 	return user, nil
 }
 
-func (ur *userRepository) GetAllUser(ctx context.Context) ([]entities.User, error){
+func (ur *userRepository) GetAllUser(ctx context.Context) ([]entities.User, error) {
 	var user []entities.User
 	if err := ur.connection.Find(&user).Error; err != nil {
 		return nil, err
@@ -42,7 +45,7 @@ func (ur *userRepository) GetAllUser(ctx context.Context) ([]entities.User, erro
 	return user, nil
 }
 
-func (ur *userRepository) GetUserByID(ctx context.Context, userID uuid.UUID) (entities.User, error){
+func (ur *userRepository) GetUserByID(ctx context.Context, userID uuid.UUID) (entities.User, error) {
 	var user entities.User
 	if err := ur.connection.Where("id = ?", userID).Take(&user).Error; err != nil {
 		return entities.User{}, err
@@ -58,16 +61,34 @@ func (ur *userRepository) GetUserByEmail(ctx context.Context, email string) (ent
 	return user, nil
 }
 
-func (ur *userRepository) UpdateUser(ctx context.Context, user entities.User) (error) {
+func (ur *userRepository) UpdateUser(ctx context.Context, user entities.User) error {
 	if err := ur.connection.Updates(&user).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func (ur *userRepository) DeleteUser(ctx context.Context, userID uuid.UUID) (error) {
+func (ur *userRepository) DeleteUser(ctx context.Context, userID uuid.UUID) error {
 	if err := ur.connection.Delete(&entities.User{}, &userID).Error; err != nil {
 		return err
 	}
 	return nil
+}
+
+func (ar *userRepository) GetAdminByEmail(ctx context.Context, email string) (entities.User, error) {
+	var admin entities.User
+	if err := ar.connection.Where("email = ?", email).Take(&admin).Error; err != nil {
+		return entities.User{}, err
+	}
+
+	return admin, nil
+}
+
+func (ar *userRepository) GetAdminByID(ctx context.Context, adminID uuid.UUID) (entities.User, error) {
+	var admin entities.User
+	if err := ar.connection.Where("id = ?", adminID).Take(&admin).Error; err != nil {
+		return entities.User{}, err
+	}
+
+	return admin, nil
 }

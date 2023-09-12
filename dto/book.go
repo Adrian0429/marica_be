@@ -6,9 +6,11 @@ import (
 )
 
 var (
-	ErrCreateBooks = errors.New("failed to create new books")
-	ErrGetAllBooks = errors.New("failed to fetch all Books")
-	ErrCreatePages = errors.New("failed to create pages")
+	ErrCreateBooks    = errors.New("failed to create new books")
+	ErrGetAllBooks    = errors.New("failed to fetch all Books")
+	ErrCreatePages    = errors.New("failed to create pages")
+	ErrDuplicateTitle = errors.New("duplicate title")
+	ErrGetBookByTitle = errors.New("failed to get book by title")
 )
 
 type (

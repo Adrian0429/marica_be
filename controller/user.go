@@ -5,6 +5,7 @@ import (
 
 	"github.com/Caknoooo/golang-clean_template/dto"
 	"github.com/Caknoooo/golang-clean_template/entities"
+	"github.com/Caknoooo/golang-clean_template/helpers"
 	"github.com/Caknoooo/golang-clean_template/services"
 	"github.com/Caknoooo/golang-clean_template/utils"
 	"github.com/gin-gonic/gin"
@@ -44,6 +45,7 @@ func (uc *userController) RegisterUser(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, res)
 		return
 	}
+
 	result, err := uc.userService.RegisterUser(ctx.Request.Context(), user)
 	if err != nil {
 		res := utils.BuildResponseFailed("Gagal Menambahkan User", "Failed", utils.EmptyObj{})
@@ -68,7 +70,7 @@ func (uc *userController) GetAllUser(ctx *gin.Context) {
 
 func (uc *userController) MeUser(ctx *gin.Context) {
 	token := ctx.MustGet("token").(string)
-	userID, err := uc.jwtService.GetUserIDByToken(token)
+	userID, err := uc.jwtService.GetIDByToken(token)
 	if err != nil {
 		res := utils.BuildResponseFailed("Gagal Memproses Request", "Token Tidak Valid", nil)
 		ctx.AbortWithStatusJSON(http.StatusUnauthorized, res)
@@ -93,7 +95,7 @@ func (uc *userController) LoginUser(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
 		return
 	}
-	
+
 	res, _ := uc.userService.Verify(ctx.Request.Context(), userLoginDTO.Email, userLoginDTO.Password)
 	if !res {
 		response := utils.BuildResponseFailed("Gagal Login", "Email atau Password Salah", utils.EmptyObj{})
@@ -101,12 +103,22 @@ func (uc *userController) LoginUser(ctx *gin.Context) {
 		return
 	}
 
+
 	user, err := uc.userService.GetUserByEmail(ctx.Request.Context(), userLoginDTO.Email)
+
 	if err != nil {
 		response := utils.BuildResponseFailed("Gagal Login", err.Error(), utils.EmptyObj{})
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
 		return
 	}
+
+	if user.Role != helpers.USER {
+		response := utils.BuildResponseFailed("Gagal Login", "Role Tidak Sesuai", utils.EmptyObj{})
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, response)
+		return
+	}
+
+
 	token := uc.jwtService.GenerateToken(user.ID, user.Role)
 	userResponse := entities.Authorization{
 		Token: token,
@@ -126,7 +138,7 @@ func (uc *userController) UpdateUser(ctx *gin.Context) {
 	}
 
 	token := ctx.MustGet("token").(string)
-	userID, err := uc.jwtService.GetUserIDByToken(token)
+	userID, err := uc.jwtService.GetIDByToken(token)
 	if err != nil {
 		res := utils.BuildResponseFailed("Gagal Memproses Request", "Token Tidak Valid", nil)
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
@@ -146,7 +158,7 @@ func (uc *userController) UpdateUser(ctx *gin.Context) {
 
 func (uc *userController) DeleteUser(ctx *gin.Context) {
 	token := ctx.MustGet("token").(string)
-	userID, err := uc.jwtService.GetUserIDByToken(token)
+	userID, err := uc.jwtService.GetIDByToken(token)
 	if err != nil {
 		res := utils.BuildResponseFailed("Gagal Memproses Request", "Token Tidak Valid", nil)
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
