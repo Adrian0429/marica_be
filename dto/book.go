@@ -9,6 +9,8 @@ var (
 	ErrCreateBooks    = errors.New("failed to create new books")
 	ErrGetAllBooks    = errors.New("failed to fetch all Books")
 	ErrCreatePages    = errors.New("failed to create pages")
+	ErrAddAudio       = errors.New("failed to save audio")
+	ErrNull           = errors.New("nothing")
 	ErrDuplicateTitle = errors.New("duplicate title")
 	ErrGetBookByTitle = errors.New("failed to get book by title")
 )
@@ -17,6 +19,7 @@ type (
 	BookCreateRequest struct {
 		Title        string                `form:"title" json:"Title"`
 		Thumbnail    *multipart.FileHeader `form:"thumbnail" json:"Thumbnail"`
+		Audio        *multipart.FileHeader `form:"audio" json:"Audio"`
 		PagesRequest []PagesRequest        `json:"Pages"`
 	}
 
@@ -24,6 +27,7 @@ type (
 		ID        string `json:"id"`
 		Title     string `json:"Book_Title"`
 		Thumbnail string `json:"Thumbnail_Path"`
+		Audio     string `json:"Audio_Path"`
 	}
 
 	PagesRequest struct {

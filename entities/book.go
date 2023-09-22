@@ -7,6 +7,7 @@ type (
 		ID        uuid.UUID `gorm:"type:uuid;primary_key;default:uuid_generate_v4()"`
 		Title     string    `gorm:"type:varchar(255);" json:"Title"`
 		Thumbnail string    `json:"thumbnail_path"`
+		Audio     string    `json:"audio_path"`
 		Pages     []Pages   `json:"Pages,omitempty"`
 	}
 
@@ -17,6 +18,5 @@ type (
 
 		BookID uuid.UUID `gorm:"type:uuid" json:"-"`
 		Book   Book      `gorm:"foreignKey:BookID" json:"-"`
-		
 	}
 )

@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/base64"
+	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -15,6 +16,7 @@ import (
 const (
 	LOCALHOST  = "http://localhost:8888/api/"
 	IMAGE      = "image/get/"
+	AUDIO      = "audio/get/"
 	PRODUCTION = "http://apibyriski.my.id/api/"
 )
 
@@ -38,6 +40,9 @@ func ToBase64(b []byte) (string, error) {
 	encodeBytes := base64.StdEncoding.EncodeToString(b)
 	if encodeBytes == "" {
 		return "", dto.ErrToBase64
+	}
+	if encodeBytes == "" {
+		return "", dto.ErrNull
 	}
 
 	return encodeBytes, nil
@@ -66,10 +71,20 @@ func IsBase64(file multipart.FileHeader) (string, error) {
 		base64Encoding += "data:image/png;base64,"
 	case "image/svg+xml":
 		base64Encoding += "data:image/svg+xml;base64,"
-	case "image/gif":
+	case "image/gif": 
 		base64Encoding += "data:image/gif;base64,"
 	case "application/pdf":
 		base64Encoding += "data:application/pdf;base64,"
+	case "audio/mpeg":
+		base64Encoding += "data:audio/mpeg;base64,"
+	case "audio/wave":
+		base64Encoding += "data:audio/wave;base64,"
+	case "audio/mp3":
+		base64Encoding += "data:audio/mp3;base64,"
+	case "application/octet-stream":
+		base64Encoding += "data:application/octet-stream;base64,"
+	default:
+		return "", fmt.Errorf("Unsupported file type: %s", mimeType)
 	}
 
 	base64, err := ToBase64(bytes)
@@ -78,12 +93,29 @@ func IsBase64(file multipart.FileHeader) (string, error) {
 	}
 	base64Encoding += base64
 
-	// fmt.Print(base64Encoding)
-
 	return base64Encoding, nil
 }
 
 func SaveImage(base64 string, path string, dirname string, filename string) error {
+	data, err := DecodeBase64(base64)
+	if err != nil {
+		return err
+	}
+
+	err = os.MkdirAll(path+"/"+dirname, 0666)
+	if err != nil {
+		return err
+	}
+
+	err = os.WriteFile(path+"/"+dirname+"/"+dirname+"_"+filename, data, 0666)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func SaveAudio(base64 string, path string, dirname string, filename string) error {
 	data, err := DecodeBase64(base64)
 	if err != nil {
 		return err
@@ -128,6 +160,13 @@ func GenerateFileName(path string, dirname string, filename string) string {
 		return LOCALHOST + IMAGE + path + "/" + dirname + "/" + dirname + "_" + filename
 	}
 	return PRODUCTION + IMAGE + path + "/" + dirname + "/" + dirname + "_" + filename
+}
+
+func GenerateAudioFileName(path string, dirname string, filename string) string {
+	if os.Getenv("APP_ENV") != "Production" {
+		return LOCALHOST + AUDIO + path + "/" + dirname + "/" + dirname + "_" + filename
+	}
+	return PRODUCTION + AUDIO + path + "/" + dirname + "/" + dirname + "_" + filename
 }
 
 func Getextension(filename string) string {

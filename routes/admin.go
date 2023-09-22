@@ -13,8 +13,9 @@ func Admin(route *gin.Engine, AdminController controller.AdminController, BookCo
 		routes.POST("/login", AdminController.LoginAdmin)
 		routes.GET("/me", middleware.Authenticate(jwtService), AdminController.MeAdmin)
 
-		routes.POST("/AddBooks", middleware.Authenticate(jwtService), BookController.CreateBook)
-		routes.GET("/book/:book_id", middleware.Authenticate(jwtService), BookController.GetBookPages)
+		routes.POST("/AddBooks", BookController.CreateBook)
+		
 	}
+	
 
 }

@@ -17,6 +17,8 @@ func User(route *gin.Engine, UserController controller.UserController, jwtServic
 		routes.PUT("/", middleware.Authenticate(jwtService), UserController.UpdateUser)
 		routes.GET("/me", middleware.Authenticate(jwtService), UserController.MeUser)
 		routes.GET("/books", BookController.GetAllBooks)
+		routes.GET("/book/:book_id", BookController.GetBookPages)
+		routes.GET("/audio/get/:path/:dirname/:filename")
 	}
 
 }

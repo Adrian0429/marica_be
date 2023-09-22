@@ -11,8 +11,7 @@ import (
 )
 
 const (
-	PATH           = "storage/Pages"
-	THUMBNAIL_PATH = "Thumbnail"
+	PATH = "storage/Pages"
 )
 
 type BookService interface {
@@ -39,7 +38,6 @@ func (bs *bookService) CreateBook(ctx context.Context, req dto.BookCreateRequest
 	bookId := uuid.New()
 
 	var thumbnailPath string
-
 	if req.Thumbnail != nil {
 		thumbnailFilename := utils.Getextension(req.Thumbnail.Filename)
 		thumbnailPath = utils.GenerateFileName("Thumbnail", req.Title, thumbnailFilename)
@@ -50,13 +48,27 @@ func (bs *bookService) CreateBook(ctx context.Context, req dto.BookCreateRequest
 		err = utils.SaveImage(thumbnailData, "storage/Thumbnail", req.Title, thumbnailFilename)
 	}
 
+	var audioPath string
+	if req.Audio != nil {
+		audioFilename := utils.Getextension(req.Audio.Filename)
+		audioPath = utils.GenerateAudioFileName("Audio", req.Title, audioFilename)
+		audioData, err := utils.IsBase64(*req.Audio)
+		if err != nil {
+			return dto.BookCreateResponse{}, err
+		}
+		err = utils.SaveAudio(audioData, "storage/Audio", req.Title, audioFilename)
+		if err != nil {
+			return dto.BookCreateResponse{}, err
+		}
+	}
+
 	book := entities.Book{
 		ID:        bookId,
 		Title:     req.Title,
 		Thumbnail: thumbnailPath,
+		Audio:     audioPath,
 	}
 
-	//create book
 	createdBook, err := bs.br.CreateBook(ctx, book)
 	if err != nil {
 		return dto.BookCreateResponse{}, dto.ErrCreateBooks
@@ -96,6 +108,7 @@ func (bs *bookService) CreateBook(ctx context.Context, req dto.BookCreateRequest
 		ID:        createdBook.ID.String(),
 		Title:     createdBook.Title,
 		Thumbnail: createdBook.Thumbnail,
+		Audio:     createdBook.Audio,
 	}, nil
 
 }

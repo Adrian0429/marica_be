@@ -40,11 +40,22 @@ func (bc *bookController) CreateBook(ctx *gin.Context) {
 
 	thumbnail, err := ctx.FormFile("thumbnail")
 	if err != nil {
-		res := utils.BuildResponseFailed("Failed to save thumbnail", err.Error(), utils.EmptyObj{})
+		res := utils.BuildResponseFailed("Failed to retrieve thumbnail", err.Error(), utils.EmptyObj{})
 		ctx.JSON(http.StatusBadRequest, res)
 		return
 	}
 	req.Thumbnail = thumbnail
+
+	audio, err := ctx.FormFile("audio")
+	if err != nil {
+		res := utils.BuildResponseFailed("Failed to retrieve Audio File", err.Error(), utils.EmptyObj{})
+		ctx.JSON(http.StatusBadRequest, res)
+	}
+	if audio == nil {
+		res := utils.BuildResponseFailed("Failed to retrieve Audio File", err.Error(), utils.EmptyObj{})
+		ctx.JSON(http.StatusBadRequest, res)
+	}
+	req.Audio = audio
 
 	for i := 0; ; i++ {
 		photo, err := ctx.FormFile("Page[" + strconv.Itoa(i) + "][pages]")
