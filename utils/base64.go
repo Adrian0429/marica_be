@@ -17,6 +17,7 @@ const (
 	LOCALHOST  = "http://localhost:8888/api/"
 	IMAGE      = "image/get/"
 	AUDIO      = "audio/get/"
+	PDF        = "pdf/get/"
 	PRODUCTION = "http://apibyriski.my.id/api/"
 )
 
@@ -71,7 +72,7 @@ func IsBase64(file multipart.FileHeader) (string, error) {
 		base64Encoding += "data:image/png;base64,"
 	case "image/svg+xml":
 		base64Encoding += "data:image/svg+xml;base64,"
-	case "image/gif": 
+	case "image/gif":
 		base64Encoding += "data:image/gif;base64,"
 	case "application/pdf":
 		base64Encoding += "data:application/pdf;base64,"
@@ -97,6 +98,25 @@ func IsBase64(file multipart.FileHeader) (string, error) {
 }
 
 func SaveImage(base64 string, path string, dirname string, filename string) error {
+	data, err := DecodeBase64(base64)
+	if err != nil {
+		return err
+	}
+
+	err = os.MkdirAll(path+"/"+dirname, 0666)
+	if err != nil {
+		return err
+	}
+
+	err = os.WriteFile(path+"/"+dirname+"/"+dirname+"_"+filename, data, 0666)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func SavePDF(base64 string, path string, dirname string, filename string) error {
 	data, err := DecodeBase64(base64)
 	if err != nil {
 		return err

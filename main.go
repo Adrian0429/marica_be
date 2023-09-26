@@ -28,6 +28,10 @@ func main() {
 		audioService    services.AudioService      = services.NewAudioService(audioRepository)
 		audioController controller.AudioController = controller.NewAudioController(audioService)
 
+		pdfRepository repository.PdfRepository = repository.NewPdfRepository(db)
+		pdfService    services.PdfService      = services.NewPdfService(pdfRepository)
+		pdfController controller.PdfController = controller.NewPdfController(pdfService)
+
 		imageRepository repository.ImageRepository = repository.NewImageRepository(db)
 		imageService    services.ImageService      = services.NewImageService(imageRepository)
 		imageController controller.ImageController = controller.NewImageController(imageService)
@@ -49,6 +53,7 @@ func main() {
 	routes.Image(server, imageController)
 	routes.Admin(server, adminController, bookController, jwtService)
 	routes.Audio(server, audioController)
+	routes.Pdf(server, pdfController)
 	if err := migrations.Seeder(db); err != nil {
 		log.Fatalf("error migration seeder: %v", err)
 	}
