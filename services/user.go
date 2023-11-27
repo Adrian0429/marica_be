@@ -12,16 +12,14 @@ import (
 )
 
 type UserService interface {
-	RegisterUser(ctx context.Context, userDTO dto.UserCreateDTO) (entities.User, error)
+	RegisterUser(ctx context.Context, userDTO dto.UserCreateRequest) (entities.User, error)
 	GetAllUser(ctx context.Context) ([]entities.User, error)
 	GetUserByID(ctx context.Context, userID uuid.UUID) (entities.User, error)
 	GetUserByEmail(ctx context.Context, email string) (entities.User, error)
 	CheckUser(ctx context.Context, email string) (bool, error)
-	UpdateUser(ctx context.Context, userDTO dto.UserUpdateDTO) error
+	UpdateUser(ctx context.Context, userDTO dto.UserUpdateRequest) error
 	DeleteUser(ctx context.Context, userID uuid.UUID) error
 	Verify(ctx context.Context, email string, password string) (bool, error)
-
-	
 }
 
 type userService struct {
@@ -34,7 +32,7 @@ func NewUserService(ur repository.UserRepository) UserService {
 	}
 }
 
-func (us *userService) RegisterUser(ctx context.Context, userDTO dto.UserCreateDTO) (entities.User, error) {
+func (us *userService) RegisterUser(ctx context.Context, userDTO dto.UserCreateRequest) (entities.User, error) {
 	user := entities.User{}
 	err := smapping.FillStruct(&user, smapping.MapFields(userDTO))
 	user.Role = helpers.USER
@@ -68,7 +66,7 @@ func (us *userService) CheckUser(ctx context.Context, email string) (bool, error
 	return true, nil
 }
 
-func (us *userService) UpdateUser(ctx context.Context, userDTO dto.UserUpdateDTO) error {
+func (us *userService) UpdateUser(ctx context.Context, userDTO dto.UserUpdateRequest) error {
 	user := entities.User{}
 	if err := smapping.FillStruct(&user, smapping.MapFields(userDTO)); err != nil {
 		return nil

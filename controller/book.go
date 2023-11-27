@@ -2,6 +2,7 @@ package controller
 
 import (
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/Caknoooo/golang-clean_template/dto"
@@ -14,26 +15,57 @@ type BookController interface {
 	CreateBook(c *gin.Context)
 	GetAllBooks(c *gin.Context)
 	GetBookPages(c *gin.Context)
+	GetImage(c *gin.Context)
 }
 
 type bookController struct {
 	bookService services.BookService
+	jwtService  services.JWTService
+	userService services.UserService
 }
 
-func NewBookController(bs services.BookService) BookController {
+func NewBookController(bs services.BookService, jwt services.JWTService, us services.UserService) BookController {
 	return &bookController{
 		bookService: bs,
+		jwtService:  jwt,
+		userService: us,
 	}
 }
 
 func (bc *bookController) CreateBook(ctx *gin.Context) {
+	token := ctx.MustGet("token").(string)
+	userID, err := bc.jwtService.GetIDByToken(token)
+	if err != nil {
+		res := utils.BuildResponseFailed("Gagal Memproses Request", "Token Tidak Valid", nil)
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, res)
+		return
+	}
+
+	user, err := bc.userService.GetUserByID(ctx, userID)
+	if err != nil {
+		res := utils.BuildResponseFailed("Gagal Memproses Request", "userID tidak valid", nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+
+	if user.Role != "admin" {
+		res := utils.BuildResponseFailed("Tidak memiliki Akses", "Role Tidak Valid", nil)
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, res)
+		return
+	}
+
 	var req dto.BookCreateRequest
-
-	ctx.PostFormArray("pages")
-	req.Title = ctx.Request.PostForm.Get("title")
-
+	req.UserID = userID
+	req.Title = ctx.PostForm("title")
 	if checkTitle, _ := bc.bookService.CheckTitle(ctx.Request.Context(), req.Title); checkTitle {
-		res := utils.BuildResponseFailed("Title Sudah Terdaftar", "failed", utils.EmptyObj{})
+		res := utils.BuildResponseFailed("Judul Sudah Terdaftar", "failed", utils.EmptyObj{})
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
+
+	req.Desc = ctx.PostForm("description")
+	if req.Desc == "" || req.Title == "" {
+		res := utils.BuildResponseFailed("Failed to retrieve title/desc", "", utils.EmptyObj{})
 		ctx.JSON(http.StatusBadRequest, res)
 		return
 	}
@@ -44,32 +76,37 @@ func (bc *bookController) CreateBook(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, res)
 		return
 	}
+
 	req.Thumbnail = thumbnail
+	page := 1
+	for i := 1; ; i++ {
+		filesUploaded := false
 
-	audio, err := ctx.FormFile("audio")
-	if err != nil {
-		res := utils.BuildResponseFailed("Failed to retrieve Audio File", err.Error(), utils.EmptyObj{})
-		ctx.JSON(http.StatusBadRequest, res)
-	}
-	if audio == nil {
-		res := utils.BuildResponseFailed("Failed to retrieve Audio File", err.Error(), utils.EmptyObj{})
-		ctx.JSON(http.StatusBadRequest, res)
-	}
-	req.Audio = audio
+		for j := 1; ; j++ {
 
-	for i := 0; ; i++ {
-		photo, err := ctx.FormFile("Page[" + strconv.Itoa(i) + "][pages]")
-		if err != nil {
-			break
+			photo, err := ctx.FormFile("Page[" + strconv.Itoa(i) + "][" + strconv.Itoa(j) + "]")
+			if err != nil {
+				break
+			}
+
+			if photo == nil {
+				break
+			}
+
+			var medias dto.MediaRequest
+			medias.Media = photo
+			medias.Index = i
+			medias.Page = page
+			req.MediaRequest = append(req.MediaRequest, medias)
+
+			filesUploaded = true
+			page++
 		}
 
-		if photo == nil {
+		if !filesUploaded {
+			page--
 			break
 		}
-
-		var Pages dto.PagesRequest
-		Pages.Pages = photo
-		req.PagesRequest = append(req.PagesRequest, Pages)
 	}
 
 	Page, err := bc.bookService.CreateBook(ctx, req)
@@ -81,7 +118,6 @@ func (bc *bookController) CreateBook(ctx *gin.Context) {
 
 	res := utils.BuildResponseSuccess("Successfully create Books", Page)
 	ctx.JSON(http.StatusOK, res)
-
 }
 
 func (bc *bookController) GetAllBooks(c *gin.Context) {
@@ -98,7 +134,6 @@ func (bc *bookController) GetAllBooks(c *gin.Context) {
 
 func (bc *bookController) GetBookPages(ctx *gin.Context) {
 	id := ctx.Param("book_id")
-
 	Books, err := bc.bookService.GetBookPages(ctx, id)
 	if err != nil {
 		res := utils.BuildResponseFailed("Gagal Mendapatkan Detail Buku", err.Error(), utils.EmptyObj{})
@@ -107,5 +142,22 @@ func (bc *bookController) GetBookPages(ctx *gin.Context) {
 	}
 	res := utils.BuildResponseSuccess("Berhasil Mendapatkan Project", Books)
 	ctx.JSON(http.StatusOK, res)
+}
 
+func (bc *bookController) GetImage(ctx *gin.Context) {
+	path := ctx.Param("path")
+	dirname := ctx.Param("dirname")
+	filename := ctx.Param("filename")
+
+	imagePath := "storage/" + path + "/" + dirname + "/" + filename
+
+	_, err := os.Stat(imagePath)
+	if os.IsNotExist(err) {
+		ctx.JSON(400, gin.H{
+			"message": "image not found",
+		})
+		return
+	}
+
+	ctx.File(imagePath)
 }

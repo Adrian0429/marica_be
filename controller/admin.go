@@ -7,7 +7,6 @@ import (
 
 	"github.com/Caknoooo/golang-clean_template/dto"
 	"github.com/Caknoooo/golang-clean_template/entities"
-	"github.com/Caknoooo/golang-clean_template/helpers"
 	"github.com/Caknoooo/golang-clean_template/services"
 	"github.com/Caknoooo/golang-clean_template/utils"
 )
@@ -53,12 +52,6 @@ func (ac *adminController) LoginAdmin(ctx *gin.Context) {
 	admin, err := ac.adminService.CheckAdminByEmail(ctx.Request.Context(), loginDTO.Email)
 	if err != nil {
 		res := utils.BuildResponseFailed("Gagal Mendapatkan Admin", err.Error(), utils.EmptyObj{})
-		ctx.JSON(http.StatusBadRequest, res)
-		return
-	}
-
-	if admin.Role != helpers.ADMIN {
-		res := utils.BuildResponseFailed("Gagal Login", "Role Tidak Sesuai", utils.EmptyObj{})
 		ctx.JSON(http.StatusBadRequest, res)
 		return
 	}

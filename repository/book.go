@@ -49,7 +49,6 @@ func (br *bookRepository) GetAllBooks(ctx context.Context) ([]entities.Book, err
 
 func (br *bookRepository) GetBookPages(ctx context.Context, bookID string) ([]entities.Pages, error) {
 	var pages []entities.Pages
-
 	if err := br.connection.Where("book_id = ?", bookID).Find(&pages).Error; err != nil {
 		return []entities.Pages{}, err
 	}

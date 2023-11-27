@@ -3,6 +3,8 @@ package dto
 import (
 	"errors"
 	"mime/multipart"
+
+	"github.com/google/uuid"
 )
 
 var (
@@ -17,21 +19,31 @@ var (
 
 type (
 	BookCreateRequest struct {
-		Title        string                `form:"title" json:"Title"`
-		Thumbnail    *multipart.FileHeader `form:"thumbnail" json:"Thumbnail"`
-		Audio        *multipart.FileHeader `form:"audio" json:"Audio"`
-		PagesRequest []PagesRequest        `json:"Pages"`
+		Title        string                `form:"title" json:"title"`
+		Desc         string                `form:"description" json:"description"`
+		Thumbnail    *multipart.FileHeader `form:"thumbnail" json:"thumbnail"`
+		UserID       uuid.UUID             `json:"user_id"`
+		MediaRequest []MediaRequest        `json:"medias"`
 	}
 
 	BookCreateResponse struct {
-		ID        string `json:"id"`
-		Title     string `json:"Book_Title"`
-		Thumbnail string `json:"Thumbnail_Path"`
-		Audio     string `json:"Audio_Path"`
+		ID               string             `json:"id"`
+		Title            string             `json:"title"`
+		Desc             string             `json:"description"`
+		Thumbnail        string             `json:"thumbnail_path"`
+		MediaPathRequest []MediaPathRequest `json:"medias"`
 	}
 
-	PagesRequest struct {
-		Pages *multipart.FileHeader `json:"pages"`
+	MediaPathRequest struct {
+		Index int    `json:"index"`
+		Page  int    `json:"page"`
+		Media string `json:"media"`
+	}
+
+	MediaRequest struct {
+		Index int                   `json:"index"`
+		Page  int                   `json:"page"`
+		Media *multipart.FileHeader `json:"media"`
 	}
 
 	PagesResponse struct {

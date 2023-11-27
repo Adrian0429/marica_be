@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -15,23 +16,21 @@ import (
 
 const (
 	LOCALHOST  = "http://localhost:8888/api/"
-	IMAGE      = "image/get/"
-	AUDIO      = "audio/get/"
-	PDF        = "pdf/get/"
+	IMAGE      = "media/get/"
 	PRODUCTION = "http://apibyriski.my.id/api/"
 )
 
 func DecodeBase64(base64String string) ([]byte, error) {
 	parts := strings.SplitN(base64String, ",", 2)
 	if len(parts) != 2 {
-		return nil, dto.ErrBase64Format
+		return nil, errors.New("err to base64")
 	}
 
 	base64Data := parts[1]
 
 	decodeBytes, err := base64.StdEncoding.DecodeString(base64Data)
 	if err != nil {
-		return nil, dto.ErrDecodeBase64
+		return nil, errors.New("err decoding to base64")
 	}
 
 	return decodeBytes, nil
@@ -52,14 +51,14 @@ func ToBase64(b []byte) (string, error) {
 func IsBase64(file multipart.FileHeader) (string, error) {
 	fileData, err := file.Open()
 	if err != nil {
-		return "", dto.ErrOpenFileMultipart
+		return "", errors.New("err to open multipart file")
 	}
 
 	defer fileData.Close()
 
 	bytes, err := io.ReadAll(fileData)
 	if err != nil {
-		return "", dto.ErrOpenIoReader
+		return "", errors.New("err opening IO reader")
 	}
 
 	var base64Encoding string
@@ -97,18 +96,19 @@ func IsBase64(file multipart.FileHeader) (string, error) {
 	return base64Encoding, nil
 }
 
-func SaveImage(base64 string, path string, dirname string, filename string) error {
+func UploadThumbnail(base64 string, path string, title string, filename string) error {
 	data, err := DecodeBase64(base64)
 	if err != nil {
 		return err
 	}
 
-	err = os.MkdirAll(path+"/"+dirname, 0666)
+	thumbnailPath := path + title + "/thumbnail"
+	err = os.MkdirAll(thumbnailPath, 0777)
 	if err != nil {
 		return err
 	}
 
-	err = os.WriteFile(path+"/"+dirname+"/"+dirname+"_"+filename, data, 0666)
+	err = os.WriteFile(thumbnailPath+"/"+title+filename, data, 0777)
 	if err != nil {
 		return err
 	}
@@ -116,37 +116,19 @@ func SaveImage(base64 string, path string, dirname string, filename string) erro
 	return nil
 }
 
-func SavePDF(base64 string, path string, dirname string, filename string) error {
+func Upload(base64 string, path string, dirname string, filename string) error {
 	data, err := DecodeBase64(base64)
 	if err != nil {
 		return err
 	}
 
-	err = os.MkdirAll(path+"/"+dirname, 0666)
+	pagesPath := path + "/" + dirname
+	err = os.MkdirAll(pagesPath, 0777)
 	if err != nil {
 		return err
 	}
 
-	err = os.WriteFile(path+"/"+dirname+"/"+dirname+"_"+filename, data, 0666)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func SaveAudio(base64 string, path string, dirname string, filename string) error {
-	data, err := DecodeBase64(base64)
-	if err != nil {
-		return err
-	}
-
-	err = os.MkdirAll(path+"/"+dirname, 0666)
-	if err != nil {
-		return err
-	}
-
-	err = os.WriteFile(path+"/"+dirname+"/"+dirname+"_"+filename, data, 0666)
+	err = os.WriteFile(pagesPath+"/"+filename, data, 0666)
 	if err != nil {
 		return err
 	}
@@ -177,16 +159,11 @@ func GetImage(dirfile string, filename string) (string, error) {
 
 func GenerateFileName(path string, dirname string, filename string) string {
 	if os.Getenv("APP_ENV") != "Production" {
-		return LOCALHOST + IMAGE + path + "/" + dirname + "/" + dirname + "_" + filename
+		return LOCALHOST + IMAGE + path + dirname + "/" + filename
 	}
-	return PRODUCTION + IMAGE + path + "/" + dirname + "/" + dirname + "_" + filename
-}
 
-func GenerateAudioFileName(path string, dirname string, filename string) string {
-	if os.Getenv("APP_ENV") != "Production" {
-		return LOCALHOST + AUDIO + path + "/" + dirname + "/" + dirname + "_" + filename
-	}
-	return PRODUCTION + AUDIO + path + "/" + dirname + "/" + dirname + "_" + filename
+	// Update the production path to reflect the new directory structure
+	return PRODUCTION + IMAGE + path + dirname + "/" + filename
 }
 
 func Getextension(filename string) string {

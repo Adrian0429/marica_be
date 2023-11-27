@@ -24,23 +24,11 @@ func main() {
 		userService    services.UserService      = services.NewUserService(userRepository)
 		userController controller.UserController = controller.NewUserController(userService, jwtService)
 
-		audioRepository repository.AudioRepository = repository.NewAudioRepository(db)
-		audioService    services.AudioService      = services.NewAudioService(audioRepository)
-		audioController controller.AudioController = controller.NewAudioController(audioService)
-
-		pdfRepository repository.PdfRepository = repository.NewPdfRepository(db)
-		pdfService    services.PdfService      = services.NewPdfService(pdfRepository)
-		pdfController controller.PdfController = controller.NewPdfController(pdfService)
-
-		imageRepository repository.ImageRepository = repository.NewImageRepository(db)
-		imageService    services.ImageService      = services.NewImageService(imageRepository)
-		imageController controller.ImageController = controller.NewImageController(imageService)
-
 		pageRepository repository.PagesRepository = repository.NewPagesRepository(db)
 
 		bookRepository repository.BookRepository = repository.NewBookRepository(db)
 		bookService    services.BookService      = services.NewBookService(bookRepository, pageRepository)
-		bookController controller.BookController = controller.NewBookController(bookService)
+		bookController controller.BookController = controller.NewBookController(bookService, jwtService, userService)
 
 		adminRepository repository.UserRepository  = repository.NewUserRepository(db)
 		adminService    services.AdminService      = services.NewAdminService(adminRepository)
@@ -50,10 +38,9 @@ func main() {
 	server := gin.Default()
 	server.Use(middleware.CORSMiddleware())
 	routes.User(server, userController, jwtService, bookController)
-	routes.Image(server, imageController)
+
 	routes.Admin(server, adminController, bookController, jwtService)
-	routes.Audio(server, audioController)
-	routes.Pdf(server, pdfController)
+
 	if err := migrations.Seeder(db); err != nil {
 		log.Fatalf("error migration seeder: %v", err)
 	}
