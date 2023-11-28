@@ -12,6 +12,7 @@ type BookRepository interface {
 	CreateBook(ctx context.Context, book entities.Book) (entities.Book, error)
 	GetAllBooks(ctx context.Context) ([]entities.Book, error)
 	GetBookPages(ctx context.Context, bookID string) ([]entities.Pages, error)
+	GetBookByID(ctx context.Context, title string) (entities.Book, error)
 }
 
 type bookRepository struct {
@@ -27,6 +28,14 @@ func NewBookRepository(db *gorm.DB) BookRepository {
 func (br *bookRepository) GetBookByTitle(ctx context.Context, title string) (entities.Book, error) {
 	var book entities.Book
 	if err := br.connection.Where("title = ?", title).First(&book).Error; err != nil {
+		return entities.Book{}, err
+	}
+	return book, nil
+}
+
+func (br *bookRepository) GetBookByID(ctx context.Context, title string) (entities.Book, error) {
+	var book entities.Book
+	if err := br.connection.Where("id = ?", title).First(&book).Error; err != nil {
 		return entities.Book{}, err
 	}
 	return book, nil

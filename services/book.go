@@ -19,7 +19,7 @@ const (
 type BookService interface {
 	CreateBook(ctx context.Context, req dto.BookCreateRequest) (dto.BookCreateResponse, error)
 	GetAllBooks(ctx context.Context) ([]dto.BookCreateResponse, error)
-	GetBookPages(ctx context.Context, bookID string) ([]dto.BookPagesRequest, error)
+	GetBookPages(ctx context.Context, bookID string) (dto.BookCreateResponse, error)
 	CheckTitle(ctx context.Context, Title string) (bool, error)
 }
 
@@ -129,21 +129,35 @@ func (bs *bookService) GetAllBooks(ctx context.Context) ([]dto.BookCreateRespons
 	return allBooks, nil
 }
 
-func (bc *bookService) GetBookPages(ctx context.Context, bookID string) ([]dto.BookPagesRequest, error) {
-	Book, err := bc.br.GetBookPages(ctx, bookID)
+func (bc *bookService) GetBookPages(ctx context.Context, bookID string) (dto.BookCreateResponse, error) {
+	var mediaRequests []dto.MediaPathRequest
+	books, err := bc.br.GetBookByID(ctx, bookID)
 	if err != nil {
-		return []dto.BookPagesRequest{}, err
+		return dto.BookCreateResponse{}, err
 	}
 
-	var allPages []dto.BookPagesRequest
-	for _, page := range Book {
-		pageProps := dto.BookPagesRequest{
-			Path: page.Path,
+	resBooks := dto.BookCreateResponse{
+		ID:        books.ID.String(),
+		Title:     books.Title,
+		Desc:      books.Desc,
+		Thumbnail: books.Thumbnail,
+	}
+
+	bookPages, err := bc.br.GetBookPages(ctx, bookID)
+	if err != nil {
+		return dto.BookCreateResponse{}, err
+	}
+
+	for _, page := range bookPages {
+		pages := dto.MediaPathRequest{
+			Index: page.Index,
+			Page:  page.Page,
+			Media: page.Path,
 		}
-		allPages = append(allPages, pageProps)
+		mediaRequests = append(mediaRequests, pages)
 	}
-	return allPages, nil
-
+	resBooks.MediaPathRequest = mediaRequests
+	return resBooks, nil
 }
 
 func (bc *bookService) CheckTitle(ctx context.Context, Title string) (bool, error) {

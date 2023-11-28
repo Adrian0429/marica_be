@@ -15,6 +15,7 @@ var (
 	ErrNull           = errors.New("nothing")
 	ErrDuplicateTitle = errors.New("duplicate title")
 	ErrGetBookByTitle = errors.New("failed to get book by title")
+	ErrGetBookByID = errors.New("failed to get book by ID")
 )
 
 type (
