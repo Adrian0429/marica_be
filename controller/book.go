@@ -15,6 +15,7 @@ type BookController interface {
 	CreateBook(c *gin.Context)
 	GetAllBooks(c *gin.Context)
 	GetBookPages(c *gin.Context)
+	GetTopBooks(c *gin.Context)
 	GetImage(c *gin.Context)
 }
 
@@ -78,10 +79,10 @@ func (bc *bookController) CreateBook(ctx *gin.Context) {
 	}
 
 	req.Thumbnail = thumbnail
-	page := 1
+
 	for i := 1; ; i++ {
 		filesUploaded := false
-
+		index := 1
 		for j := 1; ; j++ {
 
 			photo, err := ctx.FormFile("Page[" + strconv.Itoa(i) + "][" + strconv.Itoa(j) + "]")
@@ -95,16 +96,16 @@ func (bc *bookController) CreateBook(ctx *gin.Context) {
 
 			var medias dto.MediaRequest
 			medias.Media = photo
-			medias.Index = i
-			medias.Page = page
+			medias.Index = index
+			medias.Page = i
 			req.MediaRequest = append(req.MediaRequest, medias)
 
 			filesUploaded = true
-			page++
+			index++
 		}
 
 		if !filesUploaded {
-			page--
+			index--
 			break
 		}
 	}
@@ -132,9 +133,26 @@ func (bc *bookController) GetAllBooks(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
+func (bc *bookController) GetTopBooks(c *gin.Context) {
+	result, err := bc.bookService.GetTopBooks(c.Request.Context())
+
+	if err != nil {
+		res := utils.BuildResponseFailed("Gagal Mendapatkan List Buku", err.Error(), utils.EmptyObj{})
+		c.JSON(http.StatusBadRequest, res)
+		return
+	}
+	
+	res := utils.BuildResponseSuccess("Berhasil Mendapatkan List Buku", result)
+	c.JSON(http.StatusOK, res)
+}
+
 func (bc *bookController) GetBookPages(ctx *gin.Context) {
 	id := ctx.Param("book_id")
-	Books, err := bc.bookService.GetBookPages(ctx, id)
+	page := ctx.Query("page")
+	if page == "" {
+		page = "1"
+	}
+	Books, err := bc.bookService.GetBookPages(ctx, id, page)
 	if err != nil {
 		res := utils.BuildResponseFailed("Gagal Mendapatkan Detail Buku", err.Error(), utils.EmptyObj{})
 		ctx.JSON(http.StatusBadRequest, res)

@@ -15,7 +15,7 @@ var (
 	ErrNull           = errors.New("nothing")
 	ErrDuplicateTitle = errors.New("duplicate title")
 	ErrGetBookByTitle = errors.New("failed to get book by title")
-	ErrGetBookByID = errors.New("failed to get book by ID")
+	ErrGetBookByID    = errors.New("failed to get book by ID")
 )
 
 type (
@@ -27,11 +27,19 @@ type (
 		MediaRequest []MediaRequest        `json:"medias"`
 	}
 
+	BooksRequest struct {
+		ID        string `json:"id"`
+		Title     string `json:"title"`
+		Desc      string `json:"description"`
+		Thumbnail string `json:"thumbnail_path"`
+	}
+
 	BookCreateResponse struct {
-		ID               string             `json:"id"`
-		Title            string             `json:"title"`
-		Desc             string             `json:"description"`
-		Thumbnail        string             `json:"thumbnail_path"`
+		ID        string `json:"id"`
+		Title     string `json:"title"`
+		Desc      string `json:"description"`
+		Thumbnail string `json:"thumbnail_path"`
+
 		MediaPathRequest []MediaPathRequest `json:"medias"`
 	}
 

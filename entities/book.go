@@ -9,9 +9,9 @@ type (
 		Desc      string    `gorm:"type:varchar(255);" json:"description"`
 		Thumbnail string    `json:"thumbnail_path"`
 		Pages     []Pages   `json:"Pages,omitempty"`
-
-		UserID uuid.UUID `gorm:"type:uuid" json:"-"`
-		User   User      `gorm:"foreignKey:UserID" json:"-"`
+		View      int       `json:"View_Count,omitempty"`
+		UserID    uuid.UUID `gorm:"type:uuid" json:"-"`
+		User      User      `gorm:"foreignKey:UserID" json:"-"`
 	}
 
 	Pages struct {

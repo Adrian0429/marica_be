@@ -18,8 +18,9 @@ const (
 
 type BookService interface {
 	CreateBook(ctx context.Context, req dto.BookCreateRequest) (dto.BookCreateResponse, error)
-	GetAllBooks(ctx context.Context) ([]dto.BookCreateResponse, error)
-	GetBookPages(ctx context.Context, bookID string) (dto.BookCreateResponse, error)
+	GetAllBooks(ctx context.Context) ([]dto.BooksRequest, error)
+	GetTopBooks(ctx context.Context) ([]dto.BooksRequest, error)
+	GetBookPages(ctx context.Context, bookID string, bookPage string) (dto.BookCreateResponse, error)
 	CheckTitle(ctx context.Context, Title string) (bool, error)
 }
 
@@ -60,6 +61,7 @@ func (bs *bookService) CreateBook(ctx context.Context, req dto.BookCreateRequest
 		Desc:      req.Desc,
 		Title:     req.Title,
 		UserID:    req.UserID,
+		View:      0,
 		Thumbnail: thumbnailPath,
 	}
 	resBooks.ID = bookId.String()
@@ -110,14 +112,14 @@ func (bs *bookService) CreateBook(ctx context.Context, req dto.BookCreateRequest
 	return resBooks, nil
 }
 
-func (bs *bookService) GetAllBooks(ctx context.Context) ([]dto.BookCreateResponse, error) {
+func (bs *bookService) GetAllBooks(ctx context.Context) ([]dto.BooksRequest, error) {
 	Books, err := bs.br.GetAllBooks(ctx)
 	if err != nil {
 		return nil, dto.ErrGetAllBooks
 	}
-	var allBooks []dto.BookCreateResponse
+	var allBooks []dto.BooksRequest
 	for _, book := range Books {
-		bookProps := dto.BookCreateResponse{
+		bookProps := dto.BooksRequest{
 			ID:        book.ID.String(),
 			Title:     book.Title,
 			Desc:      book.Desc,
@@ -129,7 +131,27 @@ func (bs *bookService) GetAllBooks(ctx context.Context) ([]dto.BookCreateRespons
 	return allBooks, nil
 }
 
-func (bc *bookService) GetBookPages(ctx context.Context, bookID string) (dto.BookCreateResponse, error) {
+func (bs *bookService) GetTopBooks(ctx context.Context) ([]dto.BooksRequest, error) {
+	Books, err := bs.br.GetTopBooks(ctx)
+	if err != nil {
+		return nil, dto.ErrGetAllBooks
+	}
+
+	var allBooks []dto.BooksRequest
+	for _, book := range Books {
+		bookProps := dto.BooksRequest{
+			ID:        book.ID.String(),
+			Title:     book.Title,
+			Desc:      book.Desc,
+			Thumbnail: book.Thumbnail,
+		}
+
+		allBooks = append(allBooks, bookProps)
+	}
+	return allBooks, nil
+}
+
+func (bc *bookService) GetBookPages(ctx context.Context, bookID string, bookPage string) (dto.BookCreateResponse, error) {
 	var mediaRequests []dto.MediaPathRequest
 	books, err := bc.br.GetBookByID(ctx, bookID)
 	if err != nil {
@@ -143,7 +165,7 @@ func (bc *bookService) GetBookPages(ctx context.Context, bookID string) (dto.Boo
 		Thumbnail: books.Thumbnail,
 	}
 
-	bookPages, err := bc.br.GetBookPages(ctx, bookID)
+	bookPages, err := bc.br.GetBookPages(ctx, bookID, bookPage)
 	if err != nil {
 		return dto.BookCreateResponse{}, err
 	}
