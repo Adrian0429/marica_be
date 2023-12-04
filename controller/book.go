@@ -141,7 +141,7 @@ func (bc *bookController) GetTopBooks(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, res)
 		return
 	}
-	
+
 	res := utils.BuildResponseSuccess("Berhasil Mendapatkan List Buku", result)
 	c.JSON(http.StatusOK, res)
 }
@@ -178,4 +178,5 @@ func (bc *bookController) GetImage(ctx *gin.Context) {
 	}
 
 	ctx.File(imagePath)
+	
 }
