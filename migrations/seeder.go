@@ -24,13 +24,6 @@ func ListUserSeeder(db *gorm.DB) error {
 			Password:   "admin123",
 			Role:       "admin",
 		},
-		{
-			Name:       "User",
-			Email:      "user@gmail.com",
-			TelpNumber: "081293757895",
-			Password:   "user123",
-			Role:       "user",
-		},
 	}
 
 	hasTable := db.Migrator().HasTable(&entities.User{})
