@@ -36,6 +36,7 @@ func (us *userService) RegisterUser(ctx context.Context, userDTO dto.UserCreateR
 	user := entities.User{}
 	err := smapping.FillStruct(&user, smapping.MapFields(userDTO))
 	user.Role = helpers.USER
+	user.ID = uuid.New()
 	if err != nil {
 		return entities.User{}, err
 	}

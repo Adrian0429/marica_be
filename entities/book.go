@@ -4,7 +4,7 @@ import "github.com/google/uuid"
 
 type (
 	Book struct {
-		ID        uuid.UUID `gorm:"type:uuid;primary_key;default:uuid_generate_v4()"`
+		ID        uuid.UUID `gorm:"type:uuid;primary_key"`
 		Title     string    `gorm:"type:varchar(255);" json:"title"`
 		Desc      string    `gorm:"type:varchar(255);" json:"description"`
 		Thumbnail string    `json:"thumbnail_path"`
