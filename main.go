@@ -46,7 +46,8 @@ func main() {
 
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8080"
+		port = "8888"
 	}
-	server.Run("0.0.0.0:" + port)
+	server.Run(":" + port)
 }
+
