@@ -38,7 +38,6 @@ func main() {
 	server := gin.Default()
 	server.Use(middleware.CORSMiddleware())
 	routes.User(server, userController, jwtService, bookController)
-
 	routes.Admin(server, adminController, bookController, jwtService)
 
 	if err := migrations.Seeder(db); err != nil {
@@ -49,5 +48,5 @@ func main() {
 	if port == "" {
 		port = "8080"
 	}
-	server.Run(":" + port)
+	server.Run("0.0.0.0:" + port)
 }
