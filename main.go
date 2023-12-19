@@ -24,10 +24,11 @@ func main() {
 		userService    services.UserService      = services.NewUserService(userRepository)
 		userController controller.UserController = controller.NewUserController(userService, jwtService)
 
-		pageRepository repository.PagesRepository = repository.NewPagesRepository(db)
+		pageRepository  repository.PagesRepository = repository.NewPagesRepository(db)
+		filesRepository repository.FilesRepository = repository.NewFilesRepository(db)
 
 		bookRepository repository.BookRepository = repository.NewBookRepository(db)
-		bookService    services.BookService      = services.NewBookService(bookRepository, pageRepository)
+		bookService    services.BookService      = services.NewBookService(bookRepository, pageRepository, filesRepository)
 		bookController controller.BookController = controller.NewBookController(bookService, jwtService, userService)
 
 		adminRepository repository.UserRepository  = repository.NewUserRepository(db)
@@ -50,4 +51,3 @@ func main() {
 	}
 	server.Run(":" + port)
 }
-

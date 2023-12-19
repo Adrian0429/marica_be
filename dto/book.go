@@ -27,6 +27,17 @@ type (
 		MediaRequest []MediaRequest        `json:"medias"`
 	}
 
+	MediaRequest struct {
+		Index int     `json:"index"`
+		Title string  `json:"page_title"`
+		Files []Files `json:"files"`
+	}
+
+	Files struct {
+		Index  int                   `json:"index"`
+		Images *multipart.FileHeader `json:"images"`
+	}
+
 	BooksRequest struct {
 		ID        string `json:"id"`
 		Title     string `json:"title"`
@@ -38,31 +49,31 @@ type (
 		ID        string `json:"id"`
 		Title     string `json:"title"`
 		Desc      string `json:"description"`
-		Thumbnail string `json:"thumbnail_path"`
+		Thumbnail string `json:"thumbnail"`
 
 		MediaPathRequest []MediaPathRequest `json:"medias"`
 	}
 
 	MediaPathRequest struct {
+		Index int      `json:"index"`
+		Media []Medias `json:"media"`
+	}
+
+	Medias struct {
 		Index int    `json:"index"`
-		Page  int    `json:"page"`
-		Media string `json:"media"`
+		Path  string `json:"path"`
 	}
 
-	MediaRequest struct {
-		Index int                   `json:"index"`
-		Page  int                   `json:"page"`
-		Media *multipart.FileHeader `json:"media"`
-	}
-
-	PagesResponse struct {
-		ID       string `json:"id"`
-		Pages    string `json:"pages"`
-		Filename string `json:"filename"`
-		Path     string `json:"path"`
-	}
-
-	BookPagesRequest struct {
+	PagePaths struct {
 		Path string `json:"pages_paths"`
+	}
+
+	BookPageRequest struct {
+		BookID    string      `json:"id"`
+		Title     string      `json:"title"`
+		Thumbnail string      `json:"thumbnail"`
+		PageTitle string      `json:"page_title"`
+		
+		PagePaths []PagePaths `json:"page_paths"`
 	}
 )

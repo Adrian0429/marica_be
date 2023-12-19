@@ -77,15 +77,17 @@ func (bc *bookController) CreateBook(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, res)
 		return
 	}
-
 	req.Thumbnail = thumbnail
 
-	for i := 1; ; i++ {
+	for i := 0; ; i++ {
 		filesUploaded := false
-		index := 1
-		for j := 1; ; j++ {
+		var medias dto.MediaRequest
+		medias.Index = i
 
-			photo, err := ctx.FormFile("Page[" + strconv.Itoa(i) + "][" + strconv.Itoa(j) + "]")
+		for j := 0; ; j++ {
+			var files dto.Files
+			medias.Title = ctx.PostForm("Pages[" + strconv.Itoa(i) + "].Title")
+			photo, err := ctx.FormFile("Pages[" + strconv.Itoa(i) + "].Files[" + strconv.Itoa(j) + "]")
 			if err != nil {
 				break
 			}
@@ -94,20 +96,18 @@ func (bc *bookController) CreateBook(ctx *gin.Context) {
 				break
 			}
 
-			var medias dto.MediaRequest
-			medias.Media = photo
-			medias.Index = index
-			medias.Page = i
-			req.MediaRequest = append(req.MediaRequest, medias)
-
+			files.Images = photo
+			files.Index = j
+			medias.Files = append(medias.Files, files)
 			filesUploaded = true
-			index++
 		}
 
 		if !filesUploaded {
-			index--
 			break
 		}
+
+		req.MediaRequest = append(req.MediaRequest, medias)
+
 	}
 
 	Page, err := bc.bookService.CreateBook(ctx, req)
@@ -150,15 +150,17 @@ func (bc *bookController) GetBookPages(ctx *gin.Context) {
 	id := ctx.Param("book_id")
 	page := ctx.Query("page")
 	if page == "" {
-		page = "1"
+		page = "0"
 	}
+
 	Books, err := bc.bookService.GetBookPages(ctx, id, page)
 	if err != nil {
 		res := utils.BuildResponseFailed("Gagal Mendapatkan Detail Buku", err.Error(), utils.EmptyObj{})
 		ctx.JSON(http.StatusBadRequest, res)
 		return
 	}
-	res := utils.BuildResponseSuccess("Berhasil Mendapatkan Project", Books)
+
+	res := utils.BuildResponseSuccess("Berhasil Mendapatkan Buku", Books)
 	ctx.JSON(http.StatusOK, res)
 }
 
@@ -178,5 +180,5 @@ func (bc *bookController) GetImage(ctx *gin.Context) {
 	}
 
 	ctx.File(imagePath)
-	
+
 }

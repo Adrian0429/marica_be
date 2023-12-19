@@ -7,7 +7,7 @@ type (
 		ID        uuid.UUID `gorm:"type:uuid;primary_key"`
 		Title     string    `gorm:"type:varchar(255);" json:"title"`
 		Desc      string    `gorm:"type:varchar(255);" json:"description"`
-		Thumbnail string    `json:"thumbnail_path"`
+		Thumbnail string    `json:"thumbnail"`
 		Pages     []Pages   `json:"Pages,omitempty"`
 		View      int       `json:"View_Count,omitempty"`
 		UserID    uuid.UUID `gorm:"type:uuid" json:"-"`
@@ -15,13 +15,21 @@ type (
 	}
 
 	Pages struct {
-		ID       uuid.UUID `gorm:"type:uuid;primary_key" json:"id"`
-		Index    int       `gorm:"typeinteger" json:"index"`
-		Page     int       `gorm:"typeinteger" json:"page"`
-		Path     string    `gorm:"type:varchar(255)" json:"path"`
-		FileName string    `gorm:"type:varchar(255)" json:"file_name"`
+		ID        uuid.UUID `gorm:"type:uuid;primary_key" json:"id"`
+		PageTitle string    `gorm:"type:string" json:"page_title"`
+		Index     int       `gorm:"type:integer" json:"index"`
+		BookID    uuid.UUID `gorm:"type:uuid" json:"-"`
+		Book      Book      `gorm:"foreignKey:BookID" json:"-"`
 
-		BookID uuid.UUID `gorm:"type:uuid" json:"-"`
-		Book   Book      `gorm:"foreignKey:BookID" json:"-"`
+		Files []Files `json:"Files,omitempty"`
+	}
+
+	Files struct {
+		ID    uuid.UUID `gorm:"type:uuid;primary_key" json:"id" `
+		Path  string    `gorm:"type:varchar(255)" json:"path"`
+		Index int       `gorm:"type:integer" json:"index"`
+
+		PagesID uuid.UUID `gorm:"type:uuid" json:"-"`
+		Pages   Pages     `gorm:"foreignKey:PagesID" json:"-"`
 	}
 )

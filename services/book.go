@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"strconv"
 
 	"github.com/Caknoooo/golang-clean_template/dto"
@@ -20,19 +21,21 @@ type BookService interface {
 	CreateBook(ctx context.Context, req dto.BookCreateRequest) (dto.BookCreateResponse, error)
 	GetAllBooks(ctx context.Context) ([]dto.BooksRequest, error)
 	GetTopBooks(ctx context.Context) ([]dto.BooksRequest, error)
-	GetBookPages(ctx context.Context, bookID string, bookPage string) (dto.BookCreateResponse, error)
+	GetBookPages(ctx context.Context, bookID string, bookPage string) (dto.BookPageRequest, error)
 	CheckTitle(ctx context.Context, Title string) (bool, error)
 }
 
 type bookService struct {
 	br repository.BookRepository
 	pr repository.PagesRepository
+	fr repository.FilesRepository
 }
 
-func NewBookService(br repository.BookRepository, pr repository.PagesRepository) *bookService {
+func NewBookService(br repository.BookRepository, pr repository.PagesRepository, fr repository.FilesRepository) *bookService {
 	return &bookService{
 		br: br,
 		pr: pr,
+		fr: fr,
 	}
 }
 
@@ -41,6 +44,7 @@ func (bs *bookService) CreateBook(ctx context.Context, req dto.BookCreateRequest
 	var resBooks dto.BookCreateResponse
 	var mediaRequests []dto.MediaPathRequest
 	var thumbnailPath string
+
 	if req.Thumbnail != nil {
 		thumbnailData, err := utils.IsBase64(*req.Thumbnail)
 		if err != nil {
@@ -64,6 +68,7 @@ func (bs *bookService) CreateBook(ctx context.Context, req dto.BookCreateRequest
 		View:      0,
 		Thumbnail: thumbnailPath,
 	}
+
 	resBooks.ID = bookId.String()
 	resBooks.Desc = req.Desc
 	resBooks.Thumbnail = thumbnailPath
@@ -76,36 +81,54 @@ func (bs *bookService) CreateBook(ctx context.Context, req dto.BookCreateRequest
 
 	for _, v := range req.MediaRequest {
 		var mediaPath string
-
-		if v.Media != nil {
-			bookPages, err := utils.IsBase64(*v.Media)
-			if err != nil {
-				return dto.BookCreateResponse{}, dto.ErrToBase64
-			}
-
-			mediaPath = utils.GenerateFileName(PATH+createdBook.Title, "/Pages_"+strconv.Itoa(v.Index), v.Media.Filename)
-			_ = utils.Upload(bookPages, PATH+createdBook.Title, "/Pages_"+strconv.Itoa(v.Index), v.Media.Filename)
-		}
-
-		pagesItem := entities.Pages{
-			ID:       uuid.New(),
-			Index:    v.Index,
-			Page:     v.Page,
-			Path:     mediaPath,
-			FileName: v.Media.Filename,
-			BookID:   createdBook.ID,
-		}
-
+		var pagesItem entities.Pages
 		var medias dto.MediaPathRequest
-		medias.Media = mediaPath
-		medias.Index = v.Index
-		medias.Page = v.Page
-		mediaRequests = append(mediaRequests, medias)
+		var medias_paths dto.Medias
+		pagesId := uuid.New()
+
+		pagesItem = entities.Pages{
+			ID:        pagesId,
+			Index:     v.Index,
+			PageTitle: v.Title,
+			BookID:    createdBook.ID,
+		}
 
 		_, err := bs.pr.CreatePages(ctx, pagesItem)
 		if err != nil {
 			return dto.BookCreateResponse{}, dto.ErrCreatePages
 		}
+
+		for _, w := range v.Files {
+			if w.Images != nil {
+
+				bookPages, err := utils.IsBase64(*w.Images)
+				if err != nil {
+					return dto.BookCreateResponse{}, dto.ErrToBase64
+				}
+
+				mediaPath = utils.GenerateFileName(PATH+createdBook.Title, "/Pages_"+strconv.Itoa(v.Index), w.Images.Filename)
+				files := entities.Files{
+					ID:      uuid.New(),
+					Path:    mediaPath,
+					Index:   w.Index,
+					PagesID: pagesId,
+				}
+				medias_paths.Index = w.Index
+				medias_paths.Path = mediaPath
+
+				_, err = bs.fr.CreateFiles(ctx, files)
+				if err != nil {
+					return dto.BookCreateResponse{}, errors.New("error input files to db")
+				}
+				medias.Media = append(medias.Media, medias_paths)
+				pagesItem.Files = append(pagesItem.Files, files)
+
+				_ = utils.Upload(bookPages, PATH+createdBook.Title, "/Pages_"+strconv.Itoa(v.Index), w.Images.Filename)
+			}
+		}
+
+		medias.Index = v.Index
+		mediaRequests = append(mediaRequests, medias)
 	}
 
 	resBooks.MediaPathRequest = mediaRequests
@@ -151,34 +174,36 @@ func (bs *bookService) GetTopBooks(ctx context.Context) ([]dto.BooksRequest, err
 	return allBooks, nil
 }
 
-func (bc *bookService) GetBookPages(ctx context.Context, bookID string, bookPage string) (dto.BookCreateResponse, error) {
-	var mediaRequests []dto.MediaPathRequest
+func (bc *bookService) GetBookPages(ctx context.Context, bookID string, bookPage string) (dto.BookPageRequest, error) {
 	books, err := bc.br.GetBookByID(ctx, bookID)
 	if err != nil {
-		return dto.BookCreateResponse{}, err
+		return dto.BookPageRequest{}, err
 	}
 
-	resBooks := dto.BookCreateResponse{
-		ID:        books.ID.String(),
-		Title:     books.Title,
-		Desc:      books.Desc,
-		Thumbnail: books.Thumbnail,
-	}
-
-	bookPages, err := bc.br.GetBookPages(ctx, bookID, bookPage)
+	Page, err := bc.br.GetBookPage(ctx, bookID, bookPage)
 	if err != nil {
-		return dto.BookCreateResponse{}, err
+		return dto.BookPageRequest{}, err
 	}
 
-	for _, page := range bookPages {
-		pages := dto.MediaPathRequest{
-			Index: page.Index,
-			Page:  page.Page,
-			Media: page.Path,
-		}
-		mediaRequests = append(mediaRequests, pages)
+	resBooks := dto.BookPageRequest{
+		BookID:    books.ID.String(),
+		Title:     books.Title,
+		Thumbnail: books.Thumbnail,
+		PageTitle: Page.PageTitle,
 	}
-	resBooks.MediaPathRequest = mediaRequests
+
+	PagePaths, err := bc.br.GetPagesPaths(ctx, Page.ID.String())
+	if err != nil {
+		return dto.BookPageRequest{}, err
+	}
+
+	for _, page := range PagePaths {
+		pages := dto.PagePaths{
+			Path: page.Path,
+		}
+		resBooks.PagePaths = append(resBooks.PagePaths, pages)
+	}
+
 	return resBooks, nil
 }
 

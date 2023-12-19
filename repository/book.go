@@ -12,8 +12,9 @@ type BookRepository interface {
 	CreateBook(ctx context.Context, book entities.Book) (entities.Book, error)
 	GetAllBooks(ctx context.Context) ([]entities.Book, error)
 	GetTopBooks(ctx context.Context) ([]entities.Book, error)
-	GetBookPages(ctx context.Context, bookID string, bookPage string) ([]entities.Pages, error)
+	GetBookPage(ctx context.Context, bookID string, bookPage string) (entities.Pages, error)
 	GetBookByID(ctx context.Context, title string) (entities.Book, error)
+	GetPagesPaths(ctx context.Context, pagesID string) ([]entities.Files, error)
 }
 
 type bookRepository struct {
@@ -69,11 +70,20 @@ func (br *bookRepository) GetTopBooks(ctx context.Context) ([]entities.Book, err
 	return books, nil
 }
 
-func (br *bookRepository) GetBookPages(ctx context.Context, bookID string, bookPage string) ([]entities.Pages, error) {
-	var pages []entities.Pages
+func (br *bookRepository) GetBookPage(ctx context.Context, bookID string, bookPage string) (entities.Pages, error) {
+	var pages entities.Pages
 	if err := br.connection.Where("book_id = ? AND index= ?", bookID, bookPage).Find(&pages).Error; err != nil {
-		return []entities.Pages{}, err
+		return entities.Pages{}, err
 	}
 
 	return pages, nil
+}
+
+func (br *bookRepository) GetPagesPaths(ctx context.Context, pagesID string) ([]entities.Files, error) {
+	var files []entities.Files
+	if err := br.connection.Where("pages_id", pagesID).Find(&files).Error; err != nil {
+		return []entities.Files{}, err
+	}
+
+	return files, nil
 }
