@@ -17,7 +17,7 @@ import (
 const (
 	LOCALHOST  = "http://localhost:8888/api/"
 	IMAGE      = "media/get/"
-	PRODUCTION = "http://apibyriski.my.id/api/"
+	PRODUCTION = "http://146.190.94.34/api/"
 )
 
 func DecodeBase64(base64String string) ([]byte, error) {
@@ -161,8 +161,6 @@ func GenerateFileName(path string, dirname string, filename string) string {
 	if os.Getenv("APP_ENV") != "Production" {
 		return LOCALHOST + IMAGE + path + dirname + "/" + filename
 	}
-
-	// Update the production path to reflect the new directory structure
 	return PRODUCTION + IMAGE + path + dirname + "/" + filename
 }
 
