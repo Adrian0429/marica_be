@@ -14,7 +14,8 @@ func Admin(route *gin.Engine, AdminController controller.AdminController, BookCo
 		routes.GET("/me", middleware.Authenticate(jwtService), AdminController.MeAdmin)
 
 		routes.POST("/AddBooks", middleware.Authenticate(jwtService), BookController.CreateBook)
-
+		routes.GET("/AllPages/:book_id", middleware.Authenticate(jwtService), BookController.GetBookAllPages)
+		routes.DELETE("/Books/:book_id", BookController.DeleteBooks)
 	}
 
 }

@@ -24,6 +24,7 @@ func User(route *gin.Engine, UserController controller.UserController, jwtServic
 	medias := route.Group("/api/media")
 	{
 		medias.GET("/get/storage/:path/:dirname/:filename", BookController.GetImage)
+		// medias.DELETE("/get/storage/:path/:dirname/:filename", BookController.DeleteFiles)
 	}
 
 }

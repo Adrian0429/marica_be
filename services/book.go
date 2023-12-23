@@ -20,9 +20,11 @@ const (
 type BookService interface {
 	CreateBook(ctx context.Context, req dto.BookCreateRequest) (dto.BookCreateResponse, error)
 	GetAllBooks(ctx context.Context) ([]dto.BooksRequest, error)
+	GetBookAllPages(ctx context.Context, bookID string) (dto.BookPageRequest, error)
 	GetTopBooks(ctx context.Context) ([]dto.BooksRequest, error)
 	GetBookPages(ctx context.Context, bookID string, bookPage string) (dto.BookPageRequest, error)
 	CheckTitle(ctx context.Context, Title string) (bool, error)
+	DeleteBooks(ctx context.Context, BookID string) error
 }
 
 type bookService struct {
@@ -174,13 +176,48 @@ func (bs *bookService) GetTopBooks(ctx context.Context) ([]dto.BooksRequest, err
 	return allBooks, nil
 }
 
-func (bc *bookService) GetBookPages(ctx context.Context, bookID string, bookPage string) (dto.BookPageRequest, error) {
+func (bc *bookService) GetBookAllPages(ctx context.Context, bookID string) (dto.BookPageRequest, error) {
 	books, err := bc.br.GetBookByID(ctx, bookID)
 	if err != nil {
 		return dto.BookPageRequest{}, err
 	}
 
-	Page, err := bc.br.GetBookPage(ctx, bookID, bookPage)
+	Page, err := bc.br.GetBookAllPages(ctx, bookID)
+	if err != nil {
+		return dto.BookPageRequest{}, err
+	}
+
+	resBooks := dto.BookPageRequest{
+		BookID:    books.ID.String(),
+		Title:     books.Title,
+		Thumbnail: books.Thumbnail,
+		PageTitle: "Deleted Books",
+	}
+
+	for _, currPage := range Page {
+
+		Paths, err := bc.br.GetPagesPaths(ctx, currPage.ID.String())
+		if err != nil {
+			return dto.BookPageRequest{}, err
+		}
+		for _, page := range Paths {
+			pages := dto.PagePaths{
+				Path: page.Path,
+			}
+			resBooks.PagePaths = append(resBooks.PagePaths, pages)
+		}
+
+	}
+	return resBooks, nil
+}
+
+func (bc *bookService) GetBookPages(ctx context.Context, bookID string, PageIndex string) (dto.BookPageRequest, error) {
+	books, err := bc.br.GetBookByID(ctx, bookID)
+	if err != nil {
+		return dto.BookPageRequest{}, err
+	}
+
+	Page, err := bc.br.GetBookPage(ctx, bookID, PageIndex)
 	if err != nil {
 		return dto.BookPageRequest{}, err
 	}
@@ -218,4 +255,9 @@ func (bc *bookService) CheckTitle(ctx context.Context, Title string) (bool, erro
 	}
 
 	return true, nil
+}
+
+func (bc *bookService) DeleteBooks(ctx context.Context, BookID string) error {
+
+	return bc.br.DeleteBooks(ctx, BookID)
 }

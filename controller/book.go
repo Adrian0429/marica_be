@@ -15,8 +15,11 @@ type BookController interface {
 	CreateBook(c *gin.Context)
 	GetAllBooks(c *gin.Context)
 	GetBookPages(c *gin.Context)
+	GetBookAllPages(c *gin.Context)
 	GetTopBooks(c *gin.Context)
 	GetImage(c *gin.Context)
+
+	DeleteBooks(c *gin.Context)
 }
 
 type bookController struct {
@@ -164,6 +167,20 @@ func (bc *bookController) GetBookPages(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, res)
 }
 
+func (bc *bookController) GetBookAllPages(ctx *gin.Context) {
+	id := ctx.Param("book_id")
+
+	Books, err := bc.bookService.GetBookAllPages(ctx, id)
+	if err != nil {
+		res := utils.BuildResponseFailed("Gagal Mendapatkan all page Buku", err.Error(), utils.EmptyObj{})
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
+
+	res := utils.BuildResponseSuccess("Berhasil Mendapatkan all page Buku", Books)
+	ctx.JSON(http.StatusOK, res)
+}
+
 func (bc *bookController) GetImage(ctx *gin.Context) {
 	path := ctx.Param("path")
 	dirname := ctx.Param("dirname")
@@ -180,5 +197,24 @@ func (bc *bookController) GetImage(ctx *gin.Context) {
 	}
 
 	ctx.File(imagePath)
+}
 
+func (bc *bookController) DeleteBooks(ctx *gin.Context) {
+	BookId := ctx.Param("book_id")
+
+	Pages, err := bc.bookService.GetBookPages(ctx.Request.Context(), BookId, "0")
+	if err != nil {
+		return
+	}
+
+	utils.DeleteFiles(Pages.Title)
+
+	if err := bc.bookService.DeleteBooks(ctx.Request.Context(), BookId); err != nil {
+		res := utils.BuildResponseFailed("Gagal Menghapus Buku", err.Error(), utils.EmptyObj{})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+
+	res := utils.BuildResponseSuccess("Berhasil Menghapus Buku", utils.EmptyObj{})
+	ctx.JSON(http.StatusOK, res)
 }

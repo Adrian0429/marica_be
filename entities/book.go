@@ -8,7 +8,7 @@ type (
 		Title     string    `gorm:"type:varchar(255);" json:"title"`
 		Desc      string    `gorm:"type:varchar(255);" json:"description"`
 		Thumbnail string    `json:"thumbnail"`
-		Pages     []Pages   `json:"Pages,omitempty"`
+		Pages     []Pages   `json:"Pages,omitempty" gorm:"onDelete:CASCADE"`
 		View      int       `json:"View_Count,omitempty"`
 		UserID    uuid.UUID `gorm:"type:uuid" json:"-"`
 		User      User      `gorm:"foreignKey:UserID" json:"-"`
@@ -21,7 +21,7 @@ type (
 		BookID    uuid.UUID `gorm:"type:uuid" json:"-"`
 		Book      Book      `gorm:"foreignKey:BookID" json:"-"`
 
-		Files []Files `json:"Files,omitempty"`
+		Files []Files `json:"Files,omitempty" gorm:"onDelete:CASCADE"`
 	}
 
 	Files struct {

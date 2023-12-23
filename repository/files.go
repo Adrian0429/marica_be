@@ -30,3 +30,7 @@ func (r *filesRepository) CreateFiles(ctx context.Context, files entities.Files)
 
 	return files, nil
 }
+
+func (r *filesRepository) DeleteFiles(ctx context.Context, files entities.Files) (entities.Files, error) {
+	return files, nil
+}

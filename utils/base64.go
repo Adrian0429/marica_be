@@ -157,6 +157,23 @@ func GetImage(dirfile string, filename string) (string, error) {
 	return base64, nil
 }
 
+func DeleteFiles(paths string) error {
+
+	imagePath := "storage/" + paths
+
+	_, err := os.Stat(imagePath)
+	if os.IsNotExist(err) {
+		return err
+	}
+
+	if err := os.RemoveAll(imagePath); err != nil {
+
+		return err
+	}
+
+	return nil
+}
+
 func GenerateFileName(path string, dirname string, filename string) string {
 	// if os.Getenv("APP_ENV") != "Production" {
 	// 	return LOCALHOST + IMAGE + path + dirname + "/" + filename

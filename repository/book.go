@@ -13,8 +13,10 @@ type BookRepository interface {
 	GetAllBooks(ctx context.Context) ([]entities.Book, error)
 	GetTopBooks(ctx context.Context) ([]entities.Book, error)
 	GetBookPage(ctx context.Context, bookID string, bookPage string) (entities.Pages, error)
+	GetBookAllPages(ctx context.Context, bookID string) ([]entities.Pages, error)
 	GetBookByID(ctx context.Context, title string) (entities.Book, error)
 	GetPagesPaths(ctx context.Context, pagesID string) ([]entities.Files, error)
+	DeleteBooks(ctx context.Context, BookID string) error
 }
 
 type bookRepository struct {
@@ -79,6 +81,15 @@ func (br *bookRepository) GetBookPage(ctx context.Context, bookID string, bookPa
 	return pages, nil
 }
 
+func (br *bookRepository) GetBookAllPages(ctx context.Context, bookID string) ([]entities.Pages, error) {
+	var pages []entities.Pages
+	if err := br.connection.Where("book_id = ?", bookID).Find(&pages).Error; err != nil {
+		return []entities.Pages{}, err
+	}
+
+	return pages, nil
+}
+
 func (br *bookRepository) GetPagesPaths(ctx context.Context, pagesID string) ([]entities.Files, error) {
 	var files []entities.Files
 	if err := br.connection.Where("pages_id", pagesID).Find(&files).Error; err != nil {
@@ -86,4 +97,33 @@ func (br *bookRepository) GetPagesPaths(ctx context.Context, pagesID string) ([]
 	}
 
 	return files, nil
+}
+
+func (br *bookRepository) DeleteBooks(ctx context.Context, BookID string) error {
+	// Fetch the book to delete
+	var book entities.Book
+	if err := br.connection.Preload("Pages.Files").First(&book, "id = ?", BookID).Error; err != nil {
+		return err
+	}
+
+	// Manually delete associated files
+	for _, page := range book.Pages {
+		for _, file := range page.Files {
+			if err := br.connection.Delete(&file).Error; err != nil {
+				return err
+			}
+		}
+
+		// Delete the page
+		if err := br.connection.Delete(&page).Error; err != nil {
+			return err
+		}
+	}
+
+	// Delete the book
+	if err := br.connection.Delete(&book, "id = ?", BookID).Error; err != nil {
+		return err
+	}
+
+	return nil
 }
