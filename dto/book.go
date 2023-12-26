@@ -24,6 +24,7 @@ type (
 		Desc         string                `form:"description" json:"description"`
 		Thumbnail    *multipart.FileHeader `form:"thumbnail" json:"thumbnail"`
 		UserID       uuid.UUID             `json:"user_id"`
+		Page_Count   int                   `json:"page_count"`
 		MediaRequest []MediaRequest        `json:"medias"`
 	}
 
@@ -46,11 +47,11 @@ type (
 	}
 
 	BookCreateResponse struct {
-		ID        string `json:"id"`
-		Title     string `json:"title"`
-		Desc      string `json:"description"`
-		Thumbnail string `json:"thumbnail"`
-
+		ID               string             `json:"id"`
+		Title            string             `json:"title"`
+		Desc             string             `json:"description"`
+		Thumbnail        string             `json:"thumbnail"`
+		Page_Count       int                `json:"page_count"`
 		MediaPathRequest []MediaPathRequest `json:"medias"`
 	}
 
@@ -69,11 +70,12 @@ type (
 	}
 
 	BookPageRequest struct {
-		BookID    string      `json:"id"`
-		Title     string      `json:"title"`
-		Thumbnail string      `json:"thumbnail"`
-		PageTitle string      `json:"page_title"`
-		
+		BookID     string `json:"id"`
+		Title      string `json:"title"`
+		Thumbnail  string `json:"thumbnail"`
+		PageTitle  string `json:"page_title"`
+		Page_Count int    `json:"page_count"`
+
 		PagePaths []PagePaths `json:"page_paths"`
 	}
 )

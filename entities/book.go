@@ -4,14 +4,15 @@ import "github.com/google/uuid"
 
 type (
 	Book struct {
-		ID        uuid.UUID `gorm:"type:uuid;primary_key"`
-		Title     string    `gorm:"type:varchar(255);" json:"title"`
-		Desc      string    `gorm:"type:varchar(255);" json:"description"`
-		Thumbnail string    `json:"thumbnail"`
-		Pages     []Pages   `json:"Pages,omitempty" gorm:"onDelete:CASCADE"`
-		View      int       `json:"View_Count,omitempty"`
-		UserID    uuid.UUID `gorm:"type:uuid" json:"-"`
-		User      User      `gorm:"foreignKey:UserID" json:"-"`
+		ID         uuid.UUID `gorm:"type:uuid;primary_key"`
+		Title      string    `gorm:"type:varchar(255);" json:"title"`
+		Desc       string    `gorm:"type:varchar(255);" json:"description"`
+		Thumbnail  string    `json:"thumbnail"`
+		Pages      []Pages   `json:"Pages,omitempty" gorm:"onDelete:CASCADE"`
+		View       int       `json:"View_Count,omitempty"`
+		Page_Count int       `json:"Page_Count,omitempty"`
+		UserID     uuid.UUID `gorm:"type:uuid" json:"-"`
+		User       User      `gorm:"foreignKey:UserID" json:"-"`
 	}
 
 	Pages struct {

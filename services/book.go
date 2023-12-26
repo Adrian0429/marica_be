@@ -63,18 +63,20 @@ func (bs *bookService) CreateBook(ctx context.Context, req dto.BookCreateRequest
 	}
 
 	book := entities.Book{
-		ID:        bookId,
-		Desc:      req.Desc,
-		Title:     req.Title,
-		UserID:    req.UserID,
-		View:      0,
-		Thumbnail: thumbnailPath,
+		ID:         bookId,
+		Desc:       req.Desc,
+		Title:      req.Title,
+		UserID:     req.UserID,
+		Page_Count: req.Page_Count,
+		View:       0,
+		Thumbnail:  thumbnailPath,
 	}
 
 	resBooks.ID = bookId.String()
 	resBooks.Desc = req.Desc
 	resBooks.Thumbnail = thumbnailPath
 	resBooks.Title = req.Title
+	resBooks.Page_Count = req.Page_Count
 
 	createdBook, err := bs.br.CreateBook(ctx, book)
 	if err != nil {
@@ -131,6 +133,7 @@ func (bs *bookService) CreateBook(ctx context.Context, req dto.BookCreateRequest
 
 		medias.Index = v.Index
 		mediaRequests = append(mediaRequests, medias)
+
 	}
 
 	resBooks.MediaPathRequest = mediaRequests
@@ -223,10 +226,11 @@ func (bc *bookService) GetBookPages(ctx context.Context, bookID string, PageInde
 	}
 
 	resBooks := dto.BookPageRequest{
-		BookID:    books.ID.String(),
-		Title:     books.Title,
-		Thumbnail: books.Thumbnail,
-		PageTitle: Page.PageTitle,
+		BookID:     books.ID.String(),
+		Title:      books.Title,
+		Thumbnail:  books.Thumbnail,
+		PageTitle:  Page.PageTitle,
+		Page_Count: books.Page_Count,
 	}
 
 	PagePaths, err := bc.br.GetPagesPaths(ctx, Page.ID.String())

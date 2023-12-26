@@ -80,6 +80,16 @@ func (bc *bookController) CreateBook(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, res)
 		return
 	}
+
+	page_count := ctx.PostForm("page_count")
+	parsedPageCount, err := strconv.Atoi(page_count)
+	if err != nil {
+		ctx.JSON(400, gin.H{"error": "Invalid page_count"})
+		return
+	}
+
+	req.Page_Count = parsedPageCount
+
 	req.Thumbnail = thumbnail
 
 	for i := 0; ; i++ {
