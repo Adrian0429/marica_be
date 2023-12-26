@@ -182,6 +182,7 @@ func (bs *bookService) GetTopBooks(ctx context.Context) ([]dto.BooksRequest, err
 			Title:     book.Title,
 			Desc:      book.Desc,
 			Thumbnail: book.Thumbnail,
+			Tags:      book.Tags,
 		}
 
 		allBooks = append(allBooks, bookProps)

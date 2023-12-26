@@ -44,6 +44,7 @@ type (
 		ID        string `json:"id"`
 		Title     string `json:"title"`
 		Desc      string `json:"description"`
+		Tags      string `json:"tags"`
 		Thumbnail string `json:"thumbnail_path"`
 	}
 
