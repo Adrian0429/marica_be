@@ -18,7 +18,7 @@ type BookController interface {
 	GetBookAllPages(c *gin.Context)
 	GetTopBooks(c *gin.Context)
 	GetImage(c *gin.Context)
-
+	GetAllBooksAdmin(c *gin.Context)
 	DeleteBooks(c *gin.Context)
 }
 
@@ -74,17 +74,20 @@ func (bc *bookController) CreateBook(ctx *gin.Context) {
 		return
 	}
 
-	thumbnail, err := ctx.FormFile("thumbnail")
-	if err != nil {
-		res := utils.BuildResponseFailed("Failed to retrieve thumbnail", err.Error(), utils.EmptyObj{})
-		ctx.JSON(http.StatusBadRequest, res)
-		return
-	}
-
 	page_count := ctx.PostForm("page_count")
 	parsedPageCount, err := strconv.Atoi(page_count)
 	if err != nil {
 		ctx.JSON(400, gin.H{"error": "Invalid page_count"})
+		return
+	}
+
+	tags := ctx.PostForm("tags")
+	req.Tags = tags
+
+	thumbnail, err := ctx.FormFile("thumbnail")
+	if err != nil {
+		res := utils.BuildResponseFailed("Failed to retrieve thumbnail", err.Error(), utils.EmptyObj{})
+		ctx.JSON(http.StatusBadRequest, res)
 		return
 	}
 
@@ -227,4 +230,16 @@ func (bc *bookController) DeleteBooks(ctx *gin.Context) {
 
 	res := utils.BuildResponseSuccess("Berhasil Menghapus Buku", utils.EmptyObj{})
 	ctx.JSON(http.StatusOK, res)
+}
+
+func (bc *bookController) GetAllBooksAdmin(c *gin.Context) {
+	result, err := bc.bookService.GetAllBooksAdmin(c.Request.Context())
+
+	if err != nil {
+		res := utils.BuildResponseFailed("Gagal Mendapatkan List Buku admin", err.Error(), utils.EmptyObj{})
+		c.JSON(http.StatusBadRequest, res)
+		return
+	}
+	res := utils.BuildResponseSuccess("Berhasil Mendapatkan List Buku admin", result)
+	c.JSON(http.StatusOK, res)
 }

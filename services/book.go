@@ -20,6 +20,7 @@ const (
 type BookService interface {
 	CreateBook(ctx context.Context, req dto.BookCreateRequest) (dto.BookCreateResponse, error)
 	GetAllBooks(ctx context.Context) ([]dto.BooksRequest, error)
+	GetAllBooksAdmin(ctx context.Context) ([]entities.Book, error)
 	GetBookAllPages(ctx context.Context, bookID string) (dto.BookPageRequest, error)
 	GetTopBooks(ctx context.Context) ([]dto.BooksRequest, error)
 	GetBookPages(ctx context.Context, bookID string, bookPage string) (dto.BookPageRequest, error)
@@ -68,6 +69,7 @@ func (bs *bookService) CreateBook(ctx context.Context, req dto.BookCreateRequest
 		Title:      req.Title,
 		UserID:     req.UserID,
 		Page_Count: req.Page_Count,
+		Tags:       req.Tags,
 		View:       0,
 		Thumbnail:  thumbnailPath,
 	}
@@ -157,6 +159,14 @@ func (bs *bookService) GetAllBooks(ctx context.Context) ([]dto.BooksRequest, err
 		allBooks = append(allBooks, bookProps)
 	}
 	return allBooks, nil
+}
+
+func (bs *bookService) GetAllBooksAdmin(ctx context.Context) ([]entities.Book, error) {
+	Books, err := bs.br.GetAllBooks(ctx)
+	if err != nil {
+		return nil, dto.ErrGetAllBooks
+	}
+	return Books, nil
 }
 
 func (bs *bookService) GetTopBooks(ctx context.Context) ([]dto.BooksRequest, error) {

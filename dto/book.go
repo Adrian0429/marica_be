@@ -25,6 +25,7 @@ type (
 		Thumbnail    *multipart.FileHeader `form:"thumbnail" json:"thumbnail"`
 		UserID       uuid.UUID             `json:"user_id"`
 		Page_Count   int                   `json:"page_count"`
+		Tags         string                `json:"tags"`
 		MediaRequest []MediaRequest        `json:"medias"`
 	}
 
