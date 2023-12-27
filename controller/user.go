@@ -110,7 +110,6 @@ func (uc *userController) LoginUser(ctx *gin.Context) {
 		return
 	}
 
-
 	token := uc.jwtService.GenerateToken(user.ID, user.Role)
 	userResponse := entities.Authorization{
 		Token: token,
@@ -128,7 +127,6 @@ func (uc *userController) UpdateUser(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
 		return
 	}
-
 	token := ctx.MustGet("token").(string)
 	userID, err := uc.jwtService.GetIDByToken(token)
 	if err != nil {

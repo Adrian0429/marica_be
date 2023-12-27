@@ -40,11 +40,32 @@ type (
 		Images *multipart.FileHeader `json:"images"`
 	}
 
+	AllPagesRequest struct {
+		Title         string          `form:"title" json:"title"`
+		Desc          string          `form:"description" json:"description"`
+		Thumbnail     string          `form:"thumbnail" json:"thumbnail"`
+		UserID        uuid.UUID       `json:"user_id"`
+		Page_Count    int             `json:"page_count"`
+		Tags          string          `json:"tags"`
+		AllPagesMedia []AllPagesMedia `json:"medias"`
+	}
+
+	AllPagesMedia struct {
+		Index int             `json:"index"`
+		Title string          `json:"page_title"`
+		Files []AllPagesFiles `json:"files"`
+	}
+
+	AllPagesFiles struct {
+		Index int    `json:"index"`
+		Path  string `json:"images"`
+	}
+
 	BooksRequest struct {
 		ID        string `json:"id"`
 		Title     string `json:"title"`
-		Desc      string `json:"description"`
 		Tags      string `json:"tags"`
+		Desc      string `json:"description"`
 		Thumbnail string `json:"thumbnail_path"`
 	}
 

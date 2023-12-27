@@ -21,7 +21,7 @@ type BookService interface {
 	CreateBook(ctx context.Context, req dto.BookCreateRequest) (dto.BookCreateResponse, error)
 	GetAllBooks(ctx context.Context) ([]dto.BooksRequest, error)
 	GetAllBooksAdmin(ctx context.Context) ([]entities.Book, error)
-	GetBookAllPages(ctx context.Context, bookID string) (dto.BookPageRequest, error)
+	GetBookAllPages(ctx context.Context, bookID string) (dto.AllPagesRequest, error)
 	GetTopBooks(ctx context.Context) ([]dto.BooksRequest, error)
 	GetBookPages(ctx context.Context, bookID string, bookPage string) (dto.BookPageRequest, error)
 	CheckTitle(ctx context.Context, Title string) (bool, error)
@@ -152,6 +152,7 @@ func (bs *bookService) GetAllBooks(ctx context.Context) ([]dto.BooksRequest, err
 		bookProps := dto.BooksRequest{
 			ID:        book.ID.String(),
 			Title:     book.Title,
+			Tags:      book.Tags,
 			Desc:      book.Desc,
 			Thumbnail: book.Thumbnail,
 		}
@@ -190,37 +191,45 @@ func (bs *bookService) GetTopBooks(ctx context.Context) ([]dto.BooksRequest, err
 	return allBooks, nil
 }
 
-func (bc *bookService) GetBookAllPages(ctx context.Context, bookID string) (dto.BookPageRequest, error) {
+func (bc *bookService) GetBookAllPages(ctx context.Context, bookID string) (dto.AllPagesRequest, error) {
 	books, err := bc.br.GetBookByID(ctx, bookID)
 	if err != nil {
-		return dto.BookPageRequest{}, err
+		return dto.AllPagesRequest{}, err
 	}
 
-	Page, err := bc.br.GetBookAllPages(ctx, bookID)
+	resBooks := dto.AllPagesRequest{
+		Title:      books.Title,
+		Thumbnail:  books.Thumbnail,
+		Desc:       books.Desc,
+		UserID:     books.UserID,
+		Page_Count: books.Page_Count,
+		Tags:       books.Tags,
+	}
+
+	Pages, err := bc.br.GetBookAllPages(ctx, bookID)
 	if err != nil {
-		return dto.BookPageRequest{}, err
+		return dto.AllPagesRequest{}, err
 	}
 
-	resBooks := dto.BookPageRequest{
-		BookID:    books.ID.String(),
-		Title:     books.Title,
-		Thumbnail: books.Thumbnail,
-		PageTitle: "Deleted Books",
-	}
+	for _, currPage := range Pages {
+		Pages := dto.AllPagesMedia{
+			Index: currPage.Index,
+			Title: currPage.PageTitle,
+		}
 
-	for _, currPage := range Page {
-
-		Paths, err := bc.br.GetPagesPaths(ctx, currPage.ID.String())
+		PagePaths, err := bc.br.GetPagesPaths(ctx, currPage.ID.String())
 		if err != nil {
-			return dto.BookPageRequest{}, err
-		}
-		for _, page := range Paths {
-			pages := dto.PagePaths{
-				Path: page.Path,
-			}
-			resBooks.PagePaths = append(resBooks.PagePaths, pages)
+			return dto.AllPagesRequest{}, err
 		}
 
+		for _, currFiles := range PagePaths {
+			filePaths := dto.AllPagesFiles{
+				Index: currFiles.Index,
+				Path:  currFiles.Path,
+			}
+			Pages.Files = append(Pages.Files, filePaths)
+		}
+		resBooks.AllPagesMedia = append(resBooks.AllPagesMedia, Pages)
 	}
 	return resBooks, nil
 }

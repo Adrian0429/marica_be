@@ -100,13 +100,13 @@ func (br *bookRepository) GetPagesPaths(ctx context.Context, pagesID string) ([]
 }
 
 func (br *bookRepository) DeleteBooks(ctx context.Context, BookID string) error {
-	// Fetch the book to delete
+
 	var book entities.Book
 	if err := br.connection.Preload("Pages.Files").First(&book, "id = ?", BookID).Error; err != nil {
 		return err
 	}
 
-	// Manually delete associated files
+
 	for _, page := range book.Pages {
 		for _, file := range page.Files {
 			if err := br.connection.Delete(&file).Error; err != nil {

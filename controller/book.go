@@ -13,6 +13,7 @@ import (
 
 type BookController interface {
 	CreateBook(c *gin.Context)
+	// UpdateBook(c *gin.Context)
 	GetAllBooks(c *gin.Context)
 	GetBookPages(c *gin.Context)
 	GetBookAllPages(c *gin.Context)
