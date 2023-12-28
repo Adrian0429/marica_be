@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 
 	"github.com/Caknoooo/golang-clean_template/dto"
 	"github.com/Caknoooo/golang-clean_template/entities"
@@ -12,6 +13,8 @@ import (
 
 type AdminService interface {
 	RegisterAdmin()
+	GiveAccess(ctx context.Context, AccessDTO dto.GiveAccess) (bool, error)
+	RemoveAccess(ctx context.Context, AccessDTO dto.GiveAccess) (bool, error)
 	VerifyLogin(ctx context.Context, adminDTO dto.AdminLoginDTO) (bool, error)
 	CheckAdminByEmail(ctx context.Context, email string) (entities.User, error)
 	GetAdminByID(ctx context.Context, adminID uuid.UUID) (entities.User, error)
@@ -47,6 +50,33 @@ func (as *adminService) GetAdminByID(ctx context.Context, adminID uuid.UUID) (en
 	}
 
 	return admin, nil
+}
+
+func (as *adminService) GiveAccess(ctx context.Context, AccessDTO dto.GiveAccess) (bool, error) {
+	Access := entities.Book_User{
+		UserID: AccessDTO.UserID,
+		BookID: AccessDTO.BookID,
+	}
+
+	_, err := as.adminRepository.GiveAccess(ctx, Access)
+	if err != nil {
+		return false, errors.New("giving access failed")
+	}
+
+	return true, nil
+}
+
+func (as *adminService) RemoveAccess(ctx context.Context, AccessDTO dto.GiveAccess) (bool, error) {
+	Access := entities.Book_User{
+		UserID: AccessDTO.UserID,
+		BookID: AccessDTO.BookID,
+	}
+	err := as.adminRepository.RemoveAccess(ctx, Access)
+	if err != nil {
+		return false, errors.New("giving access failed")
+	}
+
+	return true, nil
 }
 
 func (as *adminService) VerifyLogin(ctx context.Context, adminDTO dto.AdminLoginDTO) (bool, error) {

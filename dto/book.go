@@ -44,7 +44,6 @@ type (
 		Title         string          `form:"title" json:"title"`
 		Desc          string          `form:"description" json:"description"`
 		Thumbnail     string          `form:"thumbnail" json:"thumbnail"`
-		UserID        uuid.UUID       `json:"user_id"`
 		Page_Count    int             `json:"page_count"`
 		Tags          string          `json:"tags"`
 		AllPagesMedia []AllPagesMedia `json:"medias"`

@@ -19,6 +19,7 @@ func User(route *gin.Engine, UserController controller.UserController, jwtServic
 		routes.GET("/top", BookController.GetTopBooks)
 		routes.GET("/books", BookController.GetAllBooks)
 		routes.GET("/books/:book_id", BookController.GetBookPages)
+		routes.GET("/mybooks", middleware.Authenticate(jwtService), BookController.GetUserBooks)
 	}
 
 	medias := route.Group("/api/media")

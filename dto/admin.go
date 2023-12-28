@@ -19,4 +19,9 @@ type (
 		Email    string `json:"email"`
 		Password string `json:"password"`
 	}
+
+	GiveAccess struct {
+		UserID string `json:"user_id"`
+		BookID string `json:"book_id"`
+	}
 )

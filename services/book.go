@@ -19,6 +19,7 @@ const (
 
 type BookService interface {
 	CreateBook(ctx context.Context, req dto.BookCreateRequest) (dto.BookCreateResponse, error)
+	GetUserBooks(ctx context.Context, userID uuid.UUID) ([]entities.Book, error)
 	GetAllBooks(ctx context.Context) ([]dto.BooksRequest, error)
 	GetAllBooksAdmin(ctx context.Context) ([]entities.Book, error)
 	GetBookAllPages(ctx context.Context, bookID string) (dto.AllPagesRequest, error)
@@ -67,7 +68,6 @@ func (bs *bookService) CreateBook(ctx context.Context, req dto.BookCreateRequest
 		ID:         bookId,
 		Desc:       req.Desc,
 		Title:      req.Title,
-		UserID:     req.UserID,
 		Page_Count: req.Page_Count,
 		Tags:       req.Tags,
 		View:       0,
@@ -201,7 +201,6 @@ func (bc *bookService) GetBookAllPages(ctx context.Context, bookID string) (dto.
 		Title:      books.Title,
 		Thumbnail:  books.Thumbnail,
 		Desc:       books.Desc,
-		UserID:     books.UserID,
 		Page_Count: books.Page_Count,
 		Tags:       books.Tags,
 	}
@@ -284,4 +283,23 @@ func (bc *bookService) CheckTitle(ctx context.Context, Title string) (bool, erro
 func (bc *bookService) DeleteBooks(ctx context.Context, BookID string) error {
 
 	return bc.br.DeleteBooks(ctx, BookID)
+}
+
+func (bc *bookService) GetUserBooks(ctx context.Context, userID uuid.UUID) ([]entities.Book, error) {
+	res := []entities.Book{}
+	userBooks, err := bc.br.GetUserBooksID(ctx, userID)
+	if err != nil {
+		return []entities.Book{}, err
+	}
+
+	for _, currBooks := range userBooks {
+		bookId := currBooks.BookID
+		book, err := bc.br.GetBookByID(ctx, bookId)
+		if err != nil {
+			return []entities.Book{}, err
+		}
+		res = append(res, book)
+	}
+
+	return res, nil
 }

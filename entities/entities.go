@@ -1,8 +1,28 @@
 package entities
 
-import "github.com/google/uuid"
+import (
+	"github.com/Caknoooo/golang-clean_template/helpers"
+	"github.com/google/uuid"
+	"gorm.io/gorm"
+)
 
 type (
+	User struct {
+		ID         uuid.UUID `gorm:"type:uuid;primary_key;" json:"id"`
+		Name       string    `gorm:"type:varchar(100)" json:"name"`
+		Email      string    `gorm:"type:varchar(100)" json:"email"`
+		TelpNumber string    `gorm:"type:varchar(14)" json:"telp_number"`
+		Password   string    `gorm:"type:varchar(100)" json:"password"`
+		Role       string    `gorm:"type:varchar(100)" json:"role"`
+
+		Timestamp
+	}
+
+	Book_User struct {
+		UserID string `gorm:"type:varchar(255);" json:"user_id"`
+		BookID string `gorm:"type:varchar(255);" json:"book_id"`
+	}
+
 	Book struct {
 		ID         uuid.UUID `gorm:"type:uuid;primary_key"`
 		Title      string    `gorm:"type:varchar(255);" json:"title"`
@@ -12,8 +32,6 @@ type (
 		Pages      []Pages   `json:"Pages,omitempty" gorm:"onDelete:CASCADE"`
 		View       int       `json:"View_Count,omitempty"`
 		Page_Count int       `json:"Page_Count,omitempty"`
-		UserID     uuid.UUID `gorm:"type:uuid" json:"-"`
-		User       User      `gorm:"foreignKey:UserID" json:"-"`
 	}
 
 	Pages struct {
@@ -35,3 +53,12 @@ type (
 		Pages   Pages     `gorm:"foreignKey:PagesID" json:"-"`
 	}
 )
+
+func (u *User) BeforeCreate(tx *gorm.DB) error {
+	var err error
+	u.Password, err = helpers.HashPassword(u.Password)
+	if err != nil {
+		return err
+	}
+	return nil
+}

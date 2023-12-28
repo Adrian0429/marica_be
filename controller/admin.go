@@ -16,6 +16,7 @@ type (
 		RegisterAdmin()
 		LoginAdmin(ctx *gin.Context)
 		MeAdmin(ctx *gin.Context)
+		GiveAccess(ctx *gin.Context)
 	}
 
 	adminController struct {
@@ -84,4 +85,58 @@ func (ac *adminController) MeAdmin(ctx *gin.Context) {
 
 	res := utils.BuildResponseSuccess("Berhasil Mendapatkan Admin", admin)
 	ctx.JSON(http.StatusOK, res)
+}
+
+func (ac *adminController) GiveAccess(ctx *gin.Context) {
+	token := ctx.MustGet("token").(string)
+
+	method := ctx.Request.Method
+
+	Access := dto.GiveAccess{
+		UserID: ctx.Param("user_id"),
+		BookID: ctx.PostForm("book_id"),
+	}
+
+	adminID, err := ac.jwtService.GetIDByToken(token)
+	if err != nil {
+		res := utils.BuildResponseFailed("Gagal Mendapatkan Admin", err.Error(), utils.EmptyObj{})
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
+
+	admin, err := ac.adminService.GetAdminByID(ctx.Request.Context(), adminID)
+	if err != nil {
+		res := utils.BuildResponseFailed("Gagal Mendapatkan Admin", err.Error(), utils.EmptyObj{})
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
+
+	if admin.Role != "admin" {
+		res := utils.BuildResponseFailed("Unautorized", err.Error(), utils.EmptyObj{})
+		ctx.JSON(http.StatusUnauthorized, res)
+		return
+	}
+
+	if method == "POST" {
+		access, err := ac.adminService.GiveAccess(ctx.Request.Context(), Access)
+		if err != nil {
+			res := utils.BuildResponseFailed("Gagal memberikan akses", err.Error(), utils.EmptyObj{})
+			ctx.JSON(http.StatusBadRequest, res)
+			return
+		}
+		res := utils.BuildResponseSuccess("Berhasil memberikan akses", access)
+		ctx.JSON(http.StatusOK, res)
+
+	} else if method == "DELETE" {
+		access, err := ac.adminService.RemoveAccess(ctx.Request.Context(), Access)
+		if err != nil {
+			res := utils.BuildResponseFailed("Gagal menghapus akses", err.Error(), utils.EmptyObj{})
+			ctx.JSON(http.StatusBadRequest, res)
+			return
+		}
+		res := utils.BuildResponseSuccess("Berhasil menghapus akses", access)
+		ctx.JSON(http.StatusOK, res)
+
+	}
+
 }

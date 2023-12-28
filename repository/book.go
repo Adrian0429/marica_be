@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/Caknoooo/golang-clean_template/entities"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -11,6 +12,7 @@ type BookRepository interface {
 	GetBookByTitle(ctx context.Context, title string) (entities.Book, error)
 	CreateBook(ctx context.Context, book entities.Book) (entities.Book, error)
 	GetAllBooks(ctx context.Context) ([]entities.Book, error)
+	GetUserBooksID(ctx context.Context, userID uuid.UUID) ([]entities.Book_User, error)
 	GetTopBooks(ctx context.Context) ([]entities.Book, error)
 	GetBookPage(ctx context.Context, bookID string, bookPage string) (entities.Pages, error)
 	GetBookAllPages(ctx context.Context, bookID string) ([]entities.Pages, error)
@@ -106,7 +108,6 @@ func (br *bookRepository) DeleteBooks(ctx context.Context, BookID string) error 
 		return err
 	}
 
-
 	for _, page := range book.Pages {
 		for _, file := range page.Files {
 			if err := br.connection.Delete(&file).Error; err != nil {
@@ -126,4 +127,12 @@ func (br *bookRepository) DeleteBooks(ctx context.Context, BookID string) error 
 	}
 
 	return nil
+}
+
+func (br *bookRepository) GetUserBooksID(ctx context.Context, userID uuid.UUID) ([]entities.Book_User, error) {
+	var userBooks []entities.Book_User
+	if err := br.connection.Where("user_id = ?", userID).Find(&userBooks).Error; err != nil {
+		return []entities.Book_User{}, err
+	}
+	return userBooks, nil
 }

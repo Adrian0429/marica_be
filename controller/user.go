@@ -68,6 +68,8 @@ func (uc *userController) GetAllUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, res)
 }
 
+
+
 func (uc *userController) MeUser(ctx *gin.Context) {
 	token := ctx.MustGet("token").(string)
 	userID, err := uc.jwtService.GetIDByToken(token)

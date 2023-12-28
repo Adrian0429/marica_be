@@ -18,6 +18,8 @@ type UserRepository interface {
 
 	GetAdminByEmail(ctx context.Context, email string) (entities.User, error)
 	GetAdminByID(ctx context.Context, adminID uuid.UUID) (entities.User, error)
+	GiveAccess(ctx context.Context, access entities.Book_User) (entities.Book_User, error)
+	RemoveAccess(ctx context.Context, access entities.Book_User) error
 }
 
 type userRepository struct {
@@ -38,11 +40,11 @@ func (ur *userRepository) RegisterUser(ctx context.Context, user entities.User) 
 }
 
 func (ur *userRepository) GetAllUser(ctx context.Context) ([]entities.User, error) {
-	var user []entities.User
-	if err := ur.connection.Find(&user).Error; err != nil {
+	var users []entities.User
+	if err := ur.connection.Not("name = ?", "Admin Sebangku").Find(&users).Error; err != nil {
 		return nil, err
 	}
-	return user, nil
+	return users, nil
 }
 
 func (ur *userRepository) GetUserByID(ctx context.Context, userID uuid.UUID) (entities.User, error) {
@@ -91,4 +93,18 @@ func (ar *userRepository) GetAdminByID(ctx context.Context, adminID uuid.UUID) (
 	}
 
 	return admin, nil
+}
+
+func (ar *userRepository) GiveAccess(ctx context.Context, access entities.Book_User) (entities.Book_User, error) {
+	if err := ar.connection.Create(&access).Error; err != nil {
+		return entities.Book_User{}, err
+	}
+	return access, nil
+}
+
+func (ur *userRepository) RemoveAccess(ctx context.Context, access entities.Book_User) error {
+	if err := ur.connection.Where(&entities.Book_User{UserID: access.UserID, BookID: access.BookID}).Delete(&entities.Book_User{}).Error; err != nil {
+		return err
+	}
+	return nil
 }

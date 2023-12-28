@@ -95,3 +95,4 @@ func (us *userService) Verify(ctx context.Context, email string, password string
 	}
 	return false, nil
 }
+

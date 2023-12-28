@@ -21,6 +21,7 @@ type BookController interface {
 	GetImage(c *gin.Context)
 	GetAllBooksAdmin(c *gin.Context)
 	DeleteBooks(c *gin.Context)
+	GetUserBooks(ctx *gin.Context)
 }
 
 type bookController struct {
@@ -243,4 +244,25 @@ func (bc *bookController) GetAllBooksAdmin(c *gin.Context) {
 	}
 	res := utils.BuildResponseSuccess("Berhasil Mendapatkan List Buku admin", result)
 	c.JSON(http.StatusOK, res)
+}
+
+func (bc *bookController) GetUserBooks(ctx *gin.Context) {
+	token := ctx.MustGet("token").(string)
+	userID, err := bc.jwtService.GetIDByToken(token)
+
+	if err != nil {
+		res := utils.BuildResponseFailed("Gagal Memproses Request", "Token Tidak Valid", nil)
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, res)
+		return
+	}
+
+	result, err := bc.bookService.GetUserBooks(ctx.Request.Context(), userID)
+	if err != nil {
+		res := utils.BuildResponseFailed("Gagal Mendapatkan Buku yang dimiliki User", err.Error(), utils.EmptyObj{})
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
+	res := utils.BuildResponseSuccess("Berhasil Mendapatkan List Buku yang dimiliki User", result)
+	ctx.JSON(http.StatusOK, res)
+
 }

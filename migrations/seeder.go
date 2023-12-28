@@ -18,10 +18,10 @@ func Seeder(db *gorm.DB) error {
 func ListUserSeeder(db *gorm.DB) error {
 	var listUser = []entities.User{
 		{
-			Name:       "Admin",
-			Email:      "admin@gmail.com",
+			Name:       "Admin Sebangku",
+			Email:      "SebangkuJayaAbadi@gmail.com",
 			TelpNumber: "081293757895",
-			Password:   "admin123",
+			Password:   "Sebangkusukses",
 			Role:       "admin",
 		},
 	}
