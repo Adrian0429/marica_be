@@ -89,12 +89,10 @@ func (ac *adminController) MeAdmin(ctx *gin.Context) {
 
 func (ac *adminController) GiveAccess(ctx *gin.Context) {
 	token := ctx.MustGet("token").(string)
-
 	method := ctx.Request.Method
-
 	Access := dto.GiveAccess{
 		UserID: ctx.Param("user_id"),
-		BookID: ctx.PostForm("book_id"),
+		BookID: ctx.Param("book_id"),
 	}
 
 	adminID, err := ac.jwtService.GetIDByToken(token)

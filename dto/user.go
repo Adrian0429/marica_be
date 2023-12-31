@@ -60,6 +60,12 @@ type (
 		Password   string `json:"password" form:"password"`
 	}
 
+	UserRequest struct {
+		ID    string `json:"id"`
+		Name  string `json:"name"`
+		Email string `json:"email"`
+	}
+
 	UserResponse struct {
 		ID         uuid.UUID `json:"id"`
 		Name       string    `json:"name"`

@@ -58,7 +58,13 @@ func (as *adminService) GiveAccess(ctx context.Context, AccessDTO dto.GiveAccess
 		BookID: AccessDTO.BookID,
 	}
 
-	_, err := as.adminRepository.GiveAccess(ctx, Access)
+	existing, err := as.adminRepository.FindAccess(ctx, Access)
+
+	if existing.UserID != "" && existing.BookID != "" {
+		return false, errors.New("Sudah memiliki akses buku tersebut")
+	}
+
+	_, err = as.adminRepository.GiveAccess(ctx, Access)
 	if err != nil {
 		return false, errors.New("giving access failed")
 	}

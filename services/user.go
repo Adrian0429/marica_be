@@ -13,7 +13,7 @@ import (
 
 type UserService interface {
 	RegisterUser(ctx context.Context, userDTO dto.UserCreateRequest) (entities.User, error)
-	GetAllUser(ctx context.Context) ([]entities.User, error)
+	GetAllUser(ctx context.Context) ([]dto.UserRequest, error)
 	GetUserByID(ctx context.Context, userID uuid.UUID) (entities.User, error)
 	GetUserByEmail(ctx context.Context, email string) (entities.User, error)
 	CheckUser(ctx context.Context, email string) (bool, error)
@@ -43,8 +43,22 @@ func (us *userService) RegisterUser(ctx context.Context, userDTO dto.UserCreateR
 	return us.userRepository.RegisterUser(ctx, user)
 }
 
-func (us *userService) GetAllUser(ctx context.Context) ([]entities.User, error) {
-	return us.userRepository.GetAllUser(ctx)
+func (us *userService) GetAllUser(ctx context.Context) ([]dto.UserRequest, error) {
+	user, err := us.userRepository.GetAllUser(ctx)
+	res := []dto.UserRequest{}
+	if err != nil {
+		return []dto.UserRequest{}, err
+	}
+	for _, users := range user {
+		userlist := dto.UserRequest{
+			ID:    users.ID.String(),
+			Name:  users.Name,
+			Email: users.Email,
+		}
+		res = append(res, userlist)
+	}
+
+	return res, nil
 }
 
 func (us *userService) GetUserByID(ctx context.Context, userID uuid.UUID) (entities.User, error) {
@@ -95,4 +109,3 @@ func (us *userService) Verify(ctx context.Context, email string, password string
 	}
 	return false, nil
 }
-

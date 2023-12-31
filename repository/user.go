@@ -20,6 +20,7 @@ type UserRepository interface {
 	GetAdminByID(ctx context.Context, adminID uuid.UUID) (entities.User, error)
 	GiveAccess(ctx context.Context, access entities.Book_User) (entities.Book_User, error)
 	RemoveAccess(ctx context.Context, access entities.Book_User) error
+	FindAccess(ctx context.Context, access entities.Book_User) (entities.Book_User, error)
 }
 
 type userRepository struct {
@@ -100,6 +101,19 @@ func (ar *userRepository) GiveAccess(ctx context.Context, access entities.Book_U
 		return entities.Book_User{}, err
 	}
 	return access, nil
+}
+
+func (ar *userRepository) FindAccess(ctx context.Context, access entities.Book_User) (entities.Book_User, error) {
+	bookid := access.BookID
+	userid := access.UserID
+
+	result := entities.Book_User{}
+
+	if err := ar.connection.Where("book_id = ? AND user_id = ?", bookid, userid).First(&result).Error; err != nil {
+		return entities.Book_User{}, err
+	}
+
+	return result, nil
 }
 
 func (ur *userRepository) RemoveAccess(ctx context.Context, access entities.Book_User) error {

@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"strconv"
@@ -9,6 +10,7 @@ import (
 	"github.com/Caknoooo/golang-clean_template/services"
 	"github.com/Caknoooo/golang-clean_template/utils"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type BookController interface {
@@ -247,22 +249,39 @@ func (bc *bookController) GetAllBooksAdmin(c *gin.Context) {
 }
 
 func (bc *bookController) GetUserBooks(ctx *gin.Context) {
-	token := ctx.MustGet("token").(string)
-	userID, err := bc.jwtService.GetIDByToken(token)
+	uid := ctx.Query("uid")
+	if uid == "" {
+		token := ctx.MustGet("token").(string)
+		userID, err := bc.jwtService.GetIDByToken(token)
 
-	if err != nil {
-		res := utils.BuildResponseFailed("Gagal Memproses Request", "Token Tidak Valid", nil)
-		ctx.AbortWithStatusJSON(http.StatusUnauthorized, res)
-		return
-	}
+		if err != nil {
+			res := utils.BuildResponseFailed("Gagal Memproses Request", "Token Tidak Valid", nil)
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, res)
+			return
+		}
 
-	result, err := bc.bookService.GetUserBooks(ctx.Request.Context(), userID)
-	if err != nil {
-		res := utils.BuildResponseFailed("Gagal Mendapatkan Buku yang dimiliki User", err.Error(), utils.EmptyObj{})
-		ctx.JSON(http.StatusBadRequest, res)
-		return
+		result, err := bc.bookService.GetUserBooks(ctx.Request.Context(), userID)
+		if err != nil {
+			res := utils.BuildResponseFailed("Gagal Mendapatkan Buku yang dimiliki User", err.Error(), utils.EmptyObj{})
+			ctx.JSON(http.StatusBadRequest, res)
+			return
+		}
+		res := utils.BuildResponseSuccess("Berhasil Mendapatkan List Buku yang dimiliki User", result)
+		ctx.JSON(http.StatusOK, res)
+	} else {
+		parsedUUID, err := uuid.Parse(uid)
+		if err != nil {
+			fmt.Println("Error parsing UUID:", err)
+			return
+		}
+		result, err := bc.bookService.GetUserBooks(ctx.Request.Context(), parsedUUID)
+		if err != nil {
+			res := utils.BuildResponseFailed("Gagal Mendapatkan Buku yang dimiliki User", err.Error(), utils.EmptyObj{})
+			ctx.JSON(http.StatusBadRequest, res)
+			return
+		}
+		res := utils.BuildResponseSuccess("Berhasil Mendapatkan List Buku yang dimiliki User", result)
+		ctx.JSON(http.StatusOK, res)
 	}
-	res := utils.BuildResponseSuccess("Berhasil Mendapatkan List Buku yang dimiliki User", result)
-	ctx.JSON(http.StatusOK, res)
 
 }
