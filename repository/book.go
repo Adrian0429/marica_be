@@ -114,14 +114,15 @@ func (br *bookRepository) DeleteBooks(ctx context.Context, BookID string) error 
 				return err
 			}
 		}
-
-		// Delete the page
 		if err := br.connection.Delete(&page).Error; err != nil {
 			return err
 		}
 	}
 
-	// Delete the book
+	if err := br.connection.Delete(&entities.Book_User{}, "book_id = ?", BookID).Error; err != nil {
+		return err
+	}
+
 	if err := br.connection.Delete(&book, "id = ?", BookID).Error; err != nil {
 		return err
 	}

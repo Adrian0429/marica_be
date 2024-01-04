@@ -26,6 +26,7 @@ type (
 		UserID       uuid.UUID             `json:"user_id"`
 		Page_Count   int                   `json:"page_count"`
 		Tags         string                `json:"tags"`
+		Tokped_Link  string                `json:"tokped_link"`
 		MediaRequest []MediaRequest        `json:"medias"`
 	}
 
@@ -72,8 +73,10 @@ type (
 		ID               string             `json:"id"`
 		Title            string             `json:"title"`
 		Desc             string             `json:"description"`
+		Tags             string             `json:"tags"`
 		Thumbnail        string             `json:"thumbnail"`
 		Page_Count       int                `json:"page_count"`
+		Tokped_Link      string             `json:"tokped_link"`
 		MediaPathRequest []MediaPathRequest `json:"medias"`
 	}
 
@@ -92,12 +95,23 @@ type (
 	}
 
 	BookPageRequest struct {
-		BookID     string `json:"id"`
-		Title      string `json:"title"`
-		Thumbnail  string `json:"thumbnail"`
-		PageTitle  string `json:"page_title"`
-		Page_Count int    `json:"page_count"`
+		BookID     string      `json:"id"`
+		Title      string      `json:"title"`
+		Tags       string      `json:"tags"`
+		PageTitle  string      `json:"page_title"`
+		Page_Count int         `json:"page_count"`
+		PagePaths  []PagePaths `json:"page_paths"`
+	}
 
-		PagePaths []PagePaths `json:"page_paths"`
+	BookPreviewRequest struct {
+		BookID      string      `json:"id"`
+		Title       string      `json:"title"`
+		Tags        string      `json:"tags"`
+		Desc        string      `json:"description"`
+		Thumbnail   string      `json:"thumbnail"`
+		PageTitle   string      `json:"page_title"`
+		Page_Count  int         `json:"page_count"`
+		Tokped_Link string      `json:"tokped_link"`
+		PagePaths   []PagePaths `json:"page_paths"`
 	}
 )

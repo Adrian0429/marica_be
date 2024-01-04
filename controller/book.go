@@ -24,6 +24,7 @@ type BookController interface {
 	GetAllBooksAdmin(c *gin.Context)
 	DeleteBooks(c *gin.Context)
 	GetUserBooks(ctx *gin.Context)
+	GetBookPreview(ctx *gin.Context)
 }
 
 type bookController struct {
@@ -78,15 +79,14 @@ func (bc *bookController) CreateBook(ctx *gin.Context) {
 		return
 	}
 
+	req.Tags = ctx.PostForm("tags")
+	req.Tokped_Link = ctx.PostForm("tokped_link")
 	page_count := ctx.PostForm("page_count")
 	parsedPageCount, err := strconv.Atoi(page_count)
 	if err != nil {
 		ctx.JSON(400, gin.H{"error": "Invalid page_count"})
 		return
 	}
-
-	tags := ctx.PostForm("tags")
-	req.Tags = tags
 
 	thumbnail, err := ctx.FormFile("thumbnail")
 	if err != nil {
@@ -96,7 +96,6 @@ func (bc *bookController) CreateBook(ctx *gin.Context) {
 	}
 
 	req.Page_Count = parsedPageCount
-
 	req.Thumbnail = thumbnail
 
 	for i := 0; ; i++ {
@@ -245,6 +244,20 @@ func (bc *bookController) GetAllBooksAdmin(c *gin.Context) {
 		return
 	}
 	res := utils.BuildResponseSuccess("Berhasil Mendapatkan List Buku admin", result)
+	c.JSON(http.StatusOK, res)
+}
+
+func (bc *bookController) GetBookPreview(c *gin.Context) {
+	id := c.Param("book_id")
+
+	result, err := bc.bookService.GetBookPreview(c.Request.Context(), id)
+	if err != nil {
+		res := utils.BuildResponseFailed("Gagal Mendapatkan Preview Buku", err.Error(), utils.EmptyObj{})
+		c.JSON(http.StatusBadRequest, res)
+		return
+	}
+
+	res := utils.BuildResponseSuccess("Berhasil Mendapatkan Preview Buku", result)
 	c.JSON(http.StatusOK, res)
 }
 

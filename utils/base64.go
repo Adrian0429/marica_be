@@ -175,9 +175,6 @@ func DeleteFiles(paths string) error {
 }
 
 func GenerateFileName(path string, dirname string, filename string) string {
-	// if os.Getenv("APP_ENV") != "Production" {
-	// 	return LOCALHOST + IMAGE + path + dirname + "/" + filename
-	// }
 	return PRODUCTION + IMAGE + path + dirname + "/" + filename
 }
 

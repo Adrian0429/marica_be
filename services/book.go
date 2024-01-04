@@ -24,6 +24,7 @@ type BookService interface {
 	GetAllBooksAdmin(ctx context.Context) ([]entities.Book, error)
 	GetBookAllPages(ctx context.Context, bookID string) (dto.AllPagesRequest, error)
 	GetTopBooks(ctx context.Context) ([]dto.BooksRequest, error)
+	GetBookPreview(ctx context.Context, bookID string) (dto.BookPreviewRequest, error)
 	GetBookPages(ctx context.Context, bookID string, bookPage string) (dto.BookPageRequest, error)
 	CheckTitle(ctx context.Context, Title string) (bool, error)
 	DeleteBooks(ctx context.Context, BookID string) error
@@ -45,7 +46,6 @@ func NewBookService(br repository.BookRepository, pr repository.PagesRepository,
 
 func (bs *bookService) CreateBook(ctx context.Context, req dto.BookCreateRequest) (dto.BookCreateResponse, error) {
 	bookId := uuid.New()
-	var resBooks dto.BookCreateResponse
 	var mediaRequests []dto.MediaPathRequest
 	var thumbnailPath string
 
@@ -65,20 +65,25 @@ func (bs *bookService) CreateBook(ctx context.Context, req dto.BookCreateRequest
 	}
 
 	book := entities.Book{
-		ID:         bookId,
-		Desc:       req.Desc,
-		Title:      req.Title,
-		Page_Count: req.Page_Count,
-		Tags:       req.Tags,
-		View:       0,
-		Thumbnail:  thumbnailPath,
+		ID:          bookId,
+		Desc:        req.Desc,
+		Title:       req.Title,
+		Page_Count:  req.Page_Count,
+		Tags:        req.Tags,
+		View:        0,
+		Thumbnail:   thumbnailPath,
+		Tokped_Link: req.Tokped_Link,
 	}
 
-	resBooks.ID = bookId.String()
-	resBooks.Desc = req.Desc
-	resBooks.Thumbnail = thumbnailPath
-	resBooks.Title = req.Title
-	resBooks.Page_Count = req.Page_Count
+	resBooks := dto.BookCreateResponse{
+		ID:          bookId.String(),
+		Desc:        req.Desc,
+		Thumbnail:   thumbnailPath,
+		Title:       req.Title,
+		Tags:        req.Tags,
+		Tokped_Link: req.Tokped_Link,
+		Page_Count:  req.Page_Count,
+	}
 
 	createdBook, err := bs.br.CreateBook(ctx, book)
 	if err != nil {
@@ -244,11 +249,15 @@ func (bc *bookService) GetBookPages(ctx context.Context, bookID string, PageInde
 		return dto.BookPageRequest{}, err
 	}
 
+	if Page.PageTitle == " " {
+		return dto.BookPageRequest{}, errors.New("error gaada title")
+	}
+
 	resBooks := dto.BookPageRequest{
 		BookID:     books.ID.String(),
-		Title:      books.Title,
-		Thumbnail:  books.Thumbnail,
 		PageTitle:  Page.PageTitle,
+		Tags:       books.Tags,
+		Title:      books.Title,
 		Page_Count: books.Page_Count,
 	}
 
@@ -281,7 +290,6 @@ func (bc *bookService) CheckTitle(ctx context.Context, Title string) (bool, erro
 }
 
 func (bc *bookService) DeleteBooks(ctx context.Context, BookID string) error {
-
 	return bc.br.DeleteBooks(ctx, BookID)
 }
 
@@ -302,4 +310,48 @@ func (bc *bookService) GetUserBooks(ctx context.Context, userID uuid.UUID) ([]en
 	}
 
 	return res, nil
+}
+
+func (bc *bookService) GetBookPreview(ctx context.Context, bookID string) (dto.BookPreviewRequest, error) {
+
+	books, err := bc.br.GetBookByID(ctx, bookID)
+	if err != nil {
+		return dto.BookPreviewRequest{}, err
+	}
+
+	resBooks := dto.BookPreviewRequest{
+		BookID:      books.ID.String(),
+		Tags:        books.Tags,
+		Desc:        books.Desc,
+		Title:       books.Title,
+		Thumbnail:   books.Thumbnail,
+		Page_Count:  books.Page_Count,
+		Tokped_Link: books.Tokped_Link,
+	}
+
+	for i := 0; i < 2; i++ {
+		Page, err := bc.br.GetBookPage(ctx, bookID, strconv.Itoa(i))
+		if err != nil {
+			return dto.BookPreviewRequest{}, err
+		}
+
+		PagePaths, err := bc.br.GetPagesPaths(ctx, Page.ID.String())
+		if err != nil {
+			return dto.BookPreviewRequest{}, err
+		}
+
+		for _, page := range PagePaths {
+			if len(resBooks.PagePaths) >= 5 {
+
+				break
+			}
+
+			pages := dto.PagePaths{
+				Path: page.Path,
+			}
+			resBooks.PagePaths = append(resBooks.PagePaths, pages)
+		}
+	}
+
+	return resBooks, nil
 }

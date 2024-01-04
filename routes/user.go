@@ -18,7 +18,8 @@ func User(route *gin.Engine, UserController controller.UserController, jwtServic
 		routes.GET("/me", middleware.Authenticate(jwtService), UserController.MeUser)
 		routes.GET("/top", BookController.GetTopBooks)
 		routes.GET("/books", BookController.GetAllBooks)
-		routes.GET("/books/:book_id", BookController.GetBookPages)
+		routes.GET("/books/:book_id", middleware.Authenticate(jwtService), BookController.GetBookPreview)
+		routes.GET("/mybooks/:book_id", middleware.Authenticate(jwtService), BookController.GetBookPages)
 		routes.GET("/mybooks", middleware.Authenticate(jwtService), BookController.GetUserBooks)
 	}
 
