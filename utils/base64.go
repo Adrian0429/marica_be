@@ -17,7 +17,7 @@ import (
 const (
 	LOCALHOST  = "http://localhost:8888/api/"
 	IMAGE      = "media/get/"
-	PRODUCTION = "http://146.190.94.34/api/"
+	PRODUCTION = "https://api2.marica.id/api/"
 )
 
 func DecodeBase64(base64String string) ([]byte, error) {
