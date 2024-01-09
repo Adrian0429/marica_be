@@ -297,6 +297,17 @@ func (bc *bookService) GetBookPages(ctx context.Context, bookID string, PageInde
 		resBooks.PagePaths = append(resBooks.PagePaths, pages)
 	}
 
+	pageIframe, err := bc.br.GetPagesIframe(ctx, Page.ID.String())
+	if err != nil {
+		return dto.BookPageRequest{}, err
+	}
+
+	for _, iframe := range pageIframe {
+		pages := dto.PagePaths{
+			Path: iframe.Path,
+		}
+		resBooks.PagePaths = append(resBooks.PagePaths, pages)
+	}
 	return resBooks, nil
 }
 

@@ -18,6 +18,7 @@ type BookRepository interface {
 	GetBookAllPages(ctx context.Context, bookID string) ([]entities.Pages, error)
 	GetBookByID(ctx context.Context, title string) (entities.Book, error)
 	GetPagesPaths(ctx context.Context, pagesID string) ([]entities.Files, error)
+	GetPagesIframe(ctx context.Context, pagesID string) ([]entities.Iframes, error)
 	DeleteBooks(ctx context.Context, BookID string) error
 }
 
@@ -96,6 +97,15 @@ func (br *bookRepository) GetPagesPaths(ctx context.Context, pagesID string) ([]
 	var files []entities.Files
 	if err := br.connection.Where("pages_id", pagesID).Find(&files).Error; err != nil {
 		return []entities.Files{}, err
+	}
+
+	return files, nil
+}
+
+func (br *bookRepository) GetPagesIframe(ctx context.Context, pagesID string) ([]entities.Iframes, error) {
+	var files []entities.Iframes
+	if err := br.connection.Where("pages_id", pagesID).Find(&files).Error; err != nil {
+		return []entities.Iframes{}, err
 	}
 
 	return files, nil
