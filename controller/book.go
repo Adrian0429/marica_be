@@ -63,24 +63,22 @@ func (bc *bookController) CreateBook(ctx *gin.Context) {
 		return
 	}
 
-	var req dto.BookCreateRequest
-	req.UserID = userID
-	req.Title = ctx.PostForm("title")
-	if checkTitle, _ := bc.bookService.CheckTitle(ctx.Request.Context(), req.Title); checkTitle {
+	title := ctx.PostForm("title")
+	if checkTitle, _ := bc.bookService.CheckTitle(ctx.Request.Context(), title); checkTitle {
 		res := utils.BuildResponseFailed("Judul Sudah Terdaftar", "failed", utils.EmptyObj{})
 		ctx.JSON(http.StatusBadRequest, res)
 		return
 	}
 
-	req.Desc = ctx.PostForm("description")
-	if req.Desc == "" || req.Title == "" {
+	desc := ctx.PostForm("description")
+	if desc == "" || title == "" {
 		res := utils.BuildResponseFailed("Failed to retrieve title/desc", "", utils.EmptyObj{})
 		ctx.JSON(http.StatusBadRequest, res)
 		return
 	}
 
-	req.Tags = ctx.PostForm("tags")
-	req.Tokped_Link = ctx.PostForm("tokped_link")
+	tags := ctx.PostForm("tags")
+	tokped := ctx.PostForm("tokped_link")
 	page_count := ctx.PostForm("page_count")
 	parsedPageCount, err := strconv.Atoi(page_count)
 	if err != nil {
@@ -95,29 +93,43 @@ func (bc *bookController) CreateBook(ctx *gin.Context) {
 		return
 	}
 
-	req.Page_Count = parsedPageCount
-	req.Thumbnail = thumbnail
+	req := dto.BookCreateRequest{
+		UserID:      userID,
+		Title:       title,
+		Desc:        desc,
+		Page_Count:  parsedPageCount,
+		Tags:        tags,
+		Tokped_Link: tokped,
+		Thumbnail:   thumbnail,
+	}
 
 	for i := 0; ; i++ {
 		filesUploaded := false
 		var medias dto.MediaRequest
 		medias.Index = i
-
+		medias.Title = ctx.PostForm("Pages[" + strconv.Itoa(i) + "].Title")
 		for j := 0; ; j++ {
-			var files dto.Files
-			medias.Title = ctx.PostForm("Pages[" + strconv.Itoa(i) + "].Title")
 			photo, err := ctx.FormFile("Pages[" + strconv.Itoa(i) + "].Files[" + strconv.Itoa(j) + "]")
 			if err != nil {
 				break
 			}
 
-			if photo == nil {
-				break
+			iframe := ctx.PostForm("Iframe[" + strconv.Itoa(i) + "].Files[" + strconv.Itoa(j) + "]")
+			Iframes := dto.IFrames{
+				Index:  j,
+				Iframe: iframe,
 			}
 
-			files.Images = photo
-			files.Index = j
+			files := dto.Files{
+				Index:  j,
+				Images: photo,
+			}
+
 			medias.Files = append(medias.Files, files)
+			if iframe != "" {
+				medias.IFrames = append(medias.IFrames, Iframes)
+			}
+
 			filesUploaded = true
 		}
 
@@ -126,7 +138,6 @@ func (bc *bookController) CreateBook(ctx *gin.Context) {
 		}
 
 		req.MediaRequest = append(req.MediaRequest, medias)
-
 	}
 
 	Page, err := bc.bookService.CreateBook(ctx, req)

@@ -20,7 +20,14 @@ func ListUserSeeder(db *gorm.DB) error {
 		{
 			Name:       "Admin Sebangku",
 			Email:      "SebangkuJayaAbadi@gmail.com",
-			TelpNumber: "081293757895",
+			TelpNumber: "082223087371",
+			Password:   "Sebangkusukses",
+			Role:       "admin",
+		},
+		{
+			Name:       "Admin Sebangku 2",
+			Email:      "pt.sebangku@gmail.com",
+			TelpNumber: "082223087371",
 			Password:   "Sebangkusukses",
 			Role:       "admin",
 		},

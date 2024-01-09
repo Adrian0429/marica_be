@@ -31,9 +31,15 @@ type (
 	}
 
 	MediaRequest struct {
-		Index int     `json:"index"`
-		Title string  `json:"page_title"`
-		Files []Files `json:"files"`
+		Index   int       `json:"index"`
+		Title   string    `json:"page_title"`
+		Files   []Files   `json:"files"`
+		IFrames []IFrames `json:"iframe"`
+	}
+
+	IFrames struct {
+		Index  int    `json:"index"`
+		Iframe string `json:"iframe"`
 	}
 
 	Files struct {
@@ -81,8 +87,9 @@ type (
 	}
 
 	MediaPathRequest struct {
-		Index int      `json:"index"`
-		Media []Medias `json:"media"`
+		Index   int       `json:"index"`
+		Iframes []IFrames `json:"iframe"`
+		Media   []Medias  `json:"media"`
 	}
 
 	Medias struct {

@@ -8,7 +8,7 @@ import (
 
 type (
 	User struct {
-		ID         uuid.UUID `gorm:"type:uuid;primary_key;" json:"id"`
+		ID         uuid.UUID `gorm:"type:uuid;primary_key;;default:uuid_generate_v4()" json:"id"`
 		Name       string    `gorm:"type:varchar(100)" json:"name"`
 		Email      string    `gorm:"type:varchar(100)" json:"email"`
 		TelpNumber string    `gorm:"type:varchar(14)" json:"telp_number"`
@@ -24,7 +24,7 @@ type (
 	}
 
 	Book struct {
-		ID          uuid.UUID `gorm:"type:uuid;primary_key"`
+		ID          uuid.UUID `gorm:"type:uuid;primary_key;;default:uuid_generate_v4()" json:"id"`
 		Title       string    `gorm:"type:varchar(255);" json:"title"`
 		Tags        string    `gorm:"type:varchar(128);" json:"tags"`
 		Desc        string    `gorm:"type:varchar(255);" json:"description"`
@@ -36,17 +36,27 @@ type (
 	}
 
 	Pages struct {
-		ID        uuid.UUID `gorm:"type:uuid;primary_key" json:"id"`
+		ID        uuid.UUID `gorm:"type:uuid;primary_key;;default:uuid_generate_v4()" json:"id"`
 		PageTitle string    `gorm:"type:string" json:"page_title"`
 		Index     int       `gorm:"type:integer" json:"index"`
 		BookID    uuid.UUID `gorm:"type:uuid" json:"-"`
 		Book      Book      `gorm:"foreignKey:BookID" json:"-"`
 
-		Files []Files `json:"Files,omitempty" gorm:"onDelete:CASCADE"`
+		Files   []Files   `json:"Files,omitempty" gorm:"onDelete:CASCADE"`
+		Iframes []Iframes `json:"Iframes,omitempty" gorm:"onDelete:CASCADE"`
 	}
 
 	Files struct {
-		ID    uuid.UUID `gorm:"type:uuid;primary_key" json:"id" `
+		ID    uuid.UUID `gorm:"type:uuid;primary_key;;default:uuid_generate_v4()" json:"id"`
+		Path  string    `gorm:"type:varchar(255)" json:"path"`
+		Index int       `gorm:"type:integer" json:"index"`
+
+		PagesID uuid.UUID `gorm:"type:uuid" json:"-"`
+		Pages   Pages     `gorm:"foreignKey:PagesID" json:"-"`
+	}
+
+	Iframes struct {
+		ID    uuid.UUID `gorm:"type:uuid;primary_key;;default:uuid_generate_v4()" json:"id"`
 		Path  string    `gorm:"type:varchar(255)" json:"path"`
 		Index int       `gorm:"type:integer" json:"index"`
 

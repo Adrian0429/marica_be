@@ -34,13 +34,15 @@ type bookService struct {
 	br repository.BookRepository
 	pr repository.PagesRepository
 	fr repository.FilesRepository
+	ir repository.IframesRepository
 }
 
-func NewBookService(br repository.BookRepository, pr repository.PagesRepository, fr repository.FilesRepository) *bookService {
+func NewBookService(br repository.BookRepository, pr repository.PagesRepository, fr repository.FilesRepository, ir repository.IframesRepository) *bookService {
 	return &bookService{
 		br: br,
 		pr: pr,
 		fr: fr,
+		ir: ir,
 	}
 }
 
@@ -94,7 +96,7 @@ func (bs *bookService) CreateBook(ctx context.Context, req dto.BookCreateRequest
 		var mediaPath string
 		var pagesItem entities.Pages
 		var medias dto.MediaPathRequest
-		var medias_paths dto.Medias
+
 		pagesId := uuid.New()
 
 		pagesItem = entities.Pages{
@@ -124,9 +126,10 @@ func (bs *bookService) CreateBook(ctx context.Context, req dto.BookCreateRequest
 					Index:   w.Index,
 					PagesID: pagesId,
 				}
-				medias_paths.Index = w.Index
-				medias_paths.Path = mediaPath
-
+				medias_paths := dto.Medias{
+					Index: w.Index,
+					Path:  mediaPath,
+				}
 				_, err = bs.fr.CreateFiles(ctx, files)
 				if err != nil {
 					return dto.BookCreateResponse{}, errors.New("error input files to db")
@@ -138,9 +141,30 @@ func (bs *bookService) CreateBook(ctx context.Context, req dto.BookCreateRequest
 			}
 		}
 
+		for _, x := range v.IFrames {
+			if x.Iframe != "" {
+				reqIframe := entities.Iframes{
+					ID:      uuid.New(),
+					Path:    x.Iframe,
+					Index:   x.Index,
+					PagesID: pagesId,
+				}
+				iframe := dto.IFrames{
+					Index:  x.Index,
+					Iframe: x.Iframe,
+				}
+
+				_, err = bs.ir.CreateIframes(ctx, reqIframe)
+				if err != nil {
+					return dto.BookCreateResponse{}, errors.New("error input iframes")
+				}
+				medias.Iframes = append(medias.Iframes, iframe)
+			}
+
+		}
+
 		medias.Index = v.Index
 		mediaRequests = append(mediaRequests, medias)
-
 	}
 
 	resBooks.MediaPathRequest = mediaRequests
