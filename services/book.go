@@ -35,14 +35,16 @@ type bookService struct {
 	pr repository.PagesRepository
 	fr repository.FilesRepository
 	ir repository.IframesRepository
+	wr repository.WorksheetRepository
 }
 
-func NewBookService(br repository.BookRepository, pr repository.PagesRepository, fr repository.FilesRepository, ir repository.IframesRepository) *bookService {
+func NewBookService(br repository.BookRepository, pr repository.PagesRepository, fr repository.FilesRepository, ir repository.IframesRepository, wr repository.WorksheetRepository) *bookService {
 	return &bookService{
 		br: br,
 		pr: pr,
 		fr: fr,
 		ir: ir,
+		wr: wr,
 	}
 }
 
@@ -149,6 +151,7 @@ func (bs *bookService) CreateBook(ctx context.Context, req dto.BookCreateRequest
 					Index:   x.Index,
 					PagesID: pagesId,
 				}
+
 				iframe := dto.IFrames{
 					Index:  x.Index,
 					Iframe: x.Iframe,
@@ -160,9 +163,34 @@ func (bs *bookService) CreateBook(ctx context.Context, req dto.BookCreateRequest
 				}
 				medias.Iframes = append(medias.Iframes, iframe)
 			}
-
 		}
 
+		for _, x := range v.Worksheet {
+			if x.String_Code != "" {
+				reqWorksheet := entities.Worksheet{
+					ID:            uuid.New(),
+					Worksheet_ID:  x.Worksheet_ID,
+					String_Code:   x.String_Code,
+					Worksheet_ID2: x.Worksheet_ID2,
+					String_Code2:  x.String_Code2,
+					String_Code3:  x.String_Code3,
+					PagesID:       pagesId,
+				}
+
+				worksheet := dto.Worksheet{
+					Worksheet_ID:  x.Worksheet_ID,
+					String_Code:   x.String_Code,
+					Worksheet_ID2: x.Worksheet_ID2,
+					String_Code2:  x.String_Code2,
+					String_Code3:  x.String_Code3,
+				}
+				_, err := bs.wr.CreateWorksheet(ctx, reqWorksheet)
+				if err != nil {
+					return dto.BookCreateResponse{}, errors.New("error input worksheet")
+				}
+				medias.Worksheet = append(medias.Worksheet, worksheet)
+			}
+		}
 		medias.Index = v.Index
 		mediaRequests = append(mediaRequests, medias)
 	}
@@ -303,11 +331,28 @@ func (bc *bookService) GetBookPages(ctx context.Context, bookID string, PageInde
 	}
 
 	for _, iframe := range pageIframe {
-		pages := dto.PagePaths{
-			Path: iframe.Path,
+		iframes := dto.IframePaths{
+			Iframe: iframe.Path,
 		}
-		resBooks.PagePaths = append(resBooks.PagePaths, pages)
+		resBooks.Iframe = append(resBooks.Iframe, iframes)
 	}
+
+	pageWorksheet, err := bc.br.GetPagesWorksheets(ctx, Page.ID.String())
+	if err != nil {
+		return dto.BookPageRequest{}, err
+	}
+
+	for _, worksheet := range pageWorksheet {
+		Worksheets := dto.Worksheet{
+			Worksheet_ID:  worksheet.Worksheet_ID,
+			Worksheet_ID2: worksheet.Worksheet_ID2,
+			String_Code:   worksheet.String_Code,
+			String_Code2:  worksheet.String_Code2,
+			String_Code3:  worksheet.String_Code3,
+		}
+		resBooks.Worksheet = append(resBooks.Worksheet, Worksheets)
+	}
+
 	return resBooks, nil
 }
 

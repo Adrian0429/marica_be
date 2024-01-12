@@ -113,8 +113,18 @@ func (bc *bookController) CreateBook(ctx *gin.Context) {
 			if err != nil {
 				break
 			}
-
 			iframe := ctx.PostForm("Iframe[" + strconv.Itoa(i) + "].Files[" + strconv.Itoa(j) + "]")
+
+			id1, err := strconv.Atoi(ctx.PostForm("WS[" + strconv.Itoa(i) + "].id[" + strconv.Itoa(j) + "]"))
+			id2, err := strconv.Atoi(ctx.PostForm("WS[" + strconv.Itoa(i) + "].id2[" + strconv.Itoa(j) + "]"))
+			WS_Input := dto.Worksheet{
+				Worksheet_ID:  id1,
+				String_Code:   ctx.PostForm("WS[" + strconv.Itoa(i) + "].code[" + strconv.Itoa(j) + "]"),
+				Worksheet_ID2: id2,
+				String_Code2:  ctx.PostForm("WS[" + strconv.Itoa(i) + "].code2[" + strconv.Itoa(j) + "]"),
+				String_Code3:  ctx.PostForm("WS[" + strconv.Itoa(i) + "].code3[" + strconv.Itoa(j) + "]"),
+			}
+
 			Iframes := dto.IFrames{
 				Index:  j,
 				Iframe: iframe,
@@ -126,8 +136,13 @@ func (bc *bookController) CreateBook(ctx *gin.Context) {
 			}
 
 			medias.Files = append(medias.Files, files)
+
 			if iframe != "" {
 				medias.IFrames = append(medias.IFrames, Iframes)
+			}
+
+			if WS_Input.String_Code != "" {
+				medias.Worksheet = append(medias.Worksheet, WS_Input)
 			}
 
 			filesUploaded = true

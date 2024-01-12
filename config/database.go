@@ -44,6 +44,7 @@ func SetUpDatabaseConnection() *gorm.DB {
 		entities.Files{},
 		entities.Book_User{},
 		entities.Iframes{},
+		entities.Worksheet{},
 	); err != nil {
 		fmt.Println(err)
 		panic(err)

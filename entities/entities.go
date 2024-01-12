@@ -42,8 +42,9 @@ type (
 		BookID    uuid.UUID `gorm:"type:uuid" json:"-"`
 		Book      Book      `gorm:"foreignKey:BookID" json:"-"`
 
-		Files   []Files   `json:"Files,omitempty" gorm:"onDelete:CASCADE"`
-		Iframes []Iframes `json:"Iframes,omitempty" gorm:"onDelete:CASCADE"`
+		Files         []Files     `json:"Files,omitempty" gorm:"onDelete:CASCADE"`
+		Iframes       []Iframes   `json:"Iframes,omitempty" gorm:"onDelete:CASCADE"`
+		LiveWorksheet []Worksheet `json:"LiveWorksheet,omitempty" gorm:"onDelete:CASCADE"`
 	}
 
 	Files struct {
@@ -59,6 +60,18 @@ type (
 		ID    uuid.UUID `gorm:"type:uuid;primary_key;;default:uuid_generate_v4()" json:"id"`
 		Path  string    `gorm:"type:varchar(255)" json:"path"`
 		Index int       `gorm:"type:integer" json:"index"`
+
+		PagesID uuid.UUID `gorm:"type:uuid" json:"-"`
+		Pages   Pages     `gorm:"foreignKey:PagesID" json:"-"`
+	}
+
+	Worksheet struct {
+		ID            uuid.UUID `gorm:"type:uuid;primary_key;;default:uuid_generate_v4()" json:"id"`
+		Worksheet_ID  int       `gorm:"type:integer" json:"worksheet_id"`
+		String_Code   string    `gorm:"type:varchar(255)" json:"String_Code"`
+		Worksheet_ID2 int       `gorm:"type:integer" json:"worksheet_id2"`
+		String_Code2  string    `gorm:"type:varchar(255)" json:"String_Code2"`
+		String_Code3  string    `gorm:"type:varchar(255)" json:"String_Code3"`
 
 		PagesID uuid.UUID `gorm:"type:uuid" json:"-"`
 		Pages   Pages     `gorm:"foreignKey:PagesID" json:"-"`

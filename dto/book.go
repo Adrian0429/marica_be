@@ -31,14 +31,27 @@ type (
 	}
 
 	MediaRequest struct {
-		Index   int       `json:"index"`
-		Title   string    `json:"page_title"`
-		Files   []Files   `json:"files"`
-		IFrames []IFrames `json:"iframe"`
+		Index     int         `json:"index"`
+		Title     string      `json:"page_title"`
+		Files     []Files     `json:"files"`
+		IFrames   []IFrames   `json:"iframe"`
+		Worksheet []Worksheet `json:"worksheet"`
 	}
 
 	IFrames struct {
 		Index  int    `json:"index"`
+		Iframe string `json:"iframe"`
+	}
+
+	Worksheet struct {
+		Worksheet_ID  int    `gorm:"type:integer" json:"worksheet_id"`
+		String_Code   string `gorm:"type:varchar(255)" json:"String_Code"`
+		Worksheet_ID2 int    `gorm:"type:integer" json:"worksheet_id2"`
+		String_Code2  string `gorm:"type:varchar(255)" json:"String_Code2"`
+		String_Code3  string `gorm:"type:varchar(255)" json:"String_Code3"`
+	}
+
+	IframePaths struct {
 		Iframe string `json:"iframe"`
 	}
 
@@ -87,9 +100,10 @@ type (
 	}
 
 	MediaPathRequest struct {
-		Index   int       `json:"index"`
-		Iframes []IFrames `json:"iframe"`
-		Media   []Medias  `json:"media"`
+		Index     int         `json:"index"`
+		Iframes   []IFrames   `json:"iframe"`
+		Media     []Medias    `json:"media"`
+		Worksheet []Worksheet `json:"worksheet"`
 	}
 
 	Medias struct {
@@ -102,12 +116,14 @@ type (
 	}
 
 	BookPageRequest struct {
-		BookID     string      `json:"id"`
-		Title      string      `json:"title"`
-		Tags       string      `json:"tags"`
-		PageTitle  string      `json:"page_title"`
-		Page_Count int         `json:"page_count"`
-		PagePaths  []PagePaths `json:"page_paths"`
+		BookID     string        `json:"id"`
+		Title      string        `json:"title"`
+		Tags       string        `json:"tags"`
+		PageTitle  string        `json:"page_title"`
+		Page_Count int           `json:"page_count"`
+		PagePaths  []PagePaths   `json:"page_paths"`
+		Iframe     []IframePaths `json:"iframe_paths"`
+		Worksheet  []Worksheet   `json:"worksheets"`
 	}
 
 	BookPreviewRequest struct {
