@@ -13,6 +13,9 @@ import (
 
 type UserController interface {
 	RegisterUser(ctx *gin.Context)
+	ForgotPassword(ctx *gin.Context)
+	HandleForgotPassword(ctx *gin.Context)
+	ResetPassword(ctx *gin.Context)
 	GetAllUser(ctx *gin.Context)
 	MeUser(ctx *gin.Context)
 	LoginUser(ctx *gin.Context)
@@ -67,8 +70,6 @@ func (uc *userController) GetAllUser(ctx *gin.Context) {
 	res := utils.BuildResponseSuccess("Berhasil Mendapatkan List User", result)
 	ctx.JSON(http.StatusOK, res)
 }
-
-
 
 func (uc *userController) MeUser(ctx *gin.Context) {
 	token := ctx.MustGet("token").(string)
@@ -146,6 +147,54 @@ func (uc *userController) UpdateUser(ctx *gin.Context) {
 
 	res := utils.BuildResponseSuccess("Berhasil Update User", userDTO)
 	ctx.JSON(http.StatusOK, res)
+}
+
+func (uc *userController) ResetPassword(ctx *gin.Context) {
+	userID := ctx.PostForm("uid")
+	newPassword := ctx.PostForm("pass")
+
+	err := uc.userService.UpdateUserPassword(ctx, userID, newPassword)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to reset password"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "Password reset successfully"})
+}
+
+func (uc *userController) ForgotPassword(ctx *gin.Context) {
+	email := ctx.PostForm("email")
+
+	user, err := uc.userService.GetUserByEmail(ctx, email)
+	if err != nil {
+		res := utils.BuildResponseFailed("Email tidak valid", "Email Tidak Valid", nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+
+	res, err := uc.userService.ForgotPassword(ctx, user)
+	if err != nil {
+		res := utils.BuildResponseFailed("gagal mengirim token", "gagal mengirim token", nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+
+	result := utils.BuildResponseSuccess("Berhasil mengirim email token", res)
+	ctx.JSON(http.StatusOK, result)
+}
+
+func (uc *userController) HandleForgotPassword(ctx *gin.Context) {
+	token := ctx.PostForm("token")
+
+	checkToken, err := uc.userService.CheckToken(ctx, token)
+	if err != nil {
+		res := utils.BuildResponseFailed("token telah habis masa aktif", "token telah habis masa aktif", nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+
+	result := utils.BuildResponseSuccess("Berhasil mengirim email token", checkToken)
+	ctx.JSON(http.StatusOK, result)
 }
 
 func (uc *userController) DeleteUser(ctx *gin.Context) {

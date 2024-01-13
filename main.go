@@ -18,16 +18,17 @@ import (
 
 func main() {
 	var (
-		db             *gorm.DB                  = config.SetUpDatabaseConnection()
-		jwtService     services.JWTService       = services.NewJWTService()
-		userRepository repository.UserRepository = repository.NewUserRepository(db)
-		userService    services.UserService      = services.NewUserService(userRepository)
-		userController controller.UserController = controller.NewUserController(userService, jwtService)
-
+		db                  *gorm.DB                       = config.SetUpDatabaseConnection()
+		jwtService          services.JWTService            = services.NewJWTService()
 		pageRepository      repository.PagesRepository     = repository.NewPagesRepository(db)
 		filesRepository     repository.FilesRepository     = repository.NewFilesRepository(db)
 		iframesRepository   repository.IframesRepository   = repository.NewIframesRepository(db)
 		worksheetRepository repository.WorksheetRepository = repository.NewWorksheetRepository(db)
+		passwordRepository  repository.PasswordRepository  = repository.NewPasswordRepository(db)
+
+		userRepository repository.UserRepository = repository.NewUserRepository(db)
+		userService    services.UserService      = services.NewUserService(userRepository, passwordRepository)
+		userController controller.UserController = controller.NewUserController(userService, jwtService)
 
 		bookRepository repository.BookRepository = repository.NewBookRepository(db)
 		bookService    services.BookService      = services.NewBookService(bookRepository, pageRepository, filesRepository, iframesRepository, worksheetRepository)

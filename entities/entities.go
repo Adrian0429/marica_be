@@ -1,6 +1,8 @@
 package entities
 
 import (
+	"time"
+
 	"github.com/Caknoooo/golang-clean_template/helpers"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -54,6 +56,13 @@ type (
 
 		PagesID uuid.UUID `gorm:"type:uuid" json:"-"`
 		Pages   Pages     `gorm:"foreignKey:PagesID" json:"-"`
+	}
+
+	Password struct {
+		ID     uuid.UUID `gorm:"type:uuid;primary_key;;default:uuid_generate_v4()" json:"id"`
+		UserID uuid.UUID `gorm:"type:uuid" json:"userID"`
+		Token  string    `gorm:"type:string" json:"token"`
+		Expiry time.Time
 	}
 
 	Iframes struct {

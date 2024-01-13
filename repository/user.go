@@ -15,7 +15,7 @@ type UserRepository interface {
 	GetUserByEmail(ctx context.Context, email string) (entities.User, error)
 	UpdateUser(ctx context.Context, user entities.User) error
 	DeleteUser(ctx context.Context, userID uuid.UUID) error
-
+	UpdateUserPassword(ctx context.Context, userID string, newPassword string) error
 	GetAdminByEmail(ctx context.Context, email string) (entities.User, error)
 	GetAdminByID(ctx context.Context, adminID uuid.UUID) (entities.User, error)
 	GiveAccess(ctx context.Context, access entities.Book_User) (entities.Book_User, error)
@@ -66,6 +66,16 @@ func (ur *userRepository) GetUserByEmail(ctx context.Context, email string) (ent
 
 func (ur *userRepository) UpdateUser(ctx context.Context, user entities.User) error {
 	if err := ur.connection.Updates(&user).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (ur *userRepository) UpdateUserPassword(ctx context.Context, userID string, newPassword string) error {
+	user := entities.User{
+		Password: newPassword,
+	}
+	if err := ur.connection.Model(&entities.User{}).Where("id = ?", userID).Updates(&user).Error; err != nil {
 		return err
 	}
 	return nil

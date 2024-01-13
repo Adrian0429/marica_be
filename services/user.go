@@ -2,11 +2,13 @@ package services
 
 import (
 	"context"
+	"time"
 
 	"github.com/Caknoooo/golang-clean_template/dto"
 	"github.com/Caknoooo/golang-clean_template/entities"
 	"github.com/Caknoooo/golang-clean_template/helpers"
 	"github.com/Caknoooo/golang-clean_template/repository"
+	"github.com/Caknoooo/golang-clean_template/utils"
 	"github.com/google/uuid"
 	"github.com/mashingan/smapping"
 )
@@ -16,19 +18,24 @@ type UserService interface {
 	GetAllUser(ctx context.Context) ([]dto.UserRequest, error)
 	GetUserByID(ctx context.Context, userID uuid.UUID) (entities.User, error)
 	GetUserByEmail(ctx context.Context, email string) (entities.User, error)
+	ForgotPassword(ctx context.Context, user entities.User) (bool, error)
+	UpdateUserPassword(ctx context.Context, userID string, newPassword string) error
 	CheckUser(ctx context.Context, email string) (bool, error)
+	CheckToken(ctx context.Context, token string) (entities.Password, error)
 	UpdateUser(ctx context.Context, userDTO dto.UserUpdateRequest) error
 	DeleteUser(ctx context.Context, userID uuid.UUID) error
 	Verify(ctx context.Context, email string, password string) (bool, error)
 }
 
 type userService struct {
-	userRepository repository.UserRepository
+	userRepository     repository.UserRepository
+	passwordRepository repository.PasswordRepository
 }
 
-func NewUserService(ur repository.UserRepository) UserService {
+func NewUserService(ur repository.UserRepository, pr repository.PasswordRepository) UserService {
 	return &userService{
-		userRepository: ur,
+		userRepository:     ur,
+		passwordRepository: pr,
 	}
 }
 
@@ -79,6 +86,45 @@ func (us *userService) CheckUser(ctx context.Context, email string) (bool, error
 		return false, err
 	}
 	return true, nil
+}
+
+func (us *userService) CheckToken(ctx context.Context, token string) (entities.Password, error) {
+	res, err := us.passwordRepository.GetToken(ctx, token)
+	if err != nil {
+		return entities.Password{}, err
+	}
+
+	if time.Now().After(res.Expiry) {
+		return entities.Password{}, err
+	}
+	return res, nil
+}
+
+func (us *userService) ForgotPassword(ctx context.Context, user entities.User) (bool, error) {
+	expiry := time.Now().Add(5 * time.Minute)
+	token := utils.GenerateOTP()
+
+	forgot := entities.Password{
+		ID:     uuid.New(),
+		UserID: user.ID,
+		Token:  token,
+		Expiry: expiry,
+	}
+
+	res, err := us.passwordRepository.CreatePassword(ctx, forgot)
+	if err != nil {
+		return false, err
+	}
+	if res.UserID == uuid.Nil {
+		return false, err
+	}
+	utils.SendRequestEmail(user.Email, res.Token)
+
+	return true, nil
+}
+
+func (us *userService) UpdateUserPassword(ctx context.Context, userID string, newPassword string) error {
+	return us.userRepository.UpdateUserPassword(ctx, userID, newPassword)
 }
 
 func (us *userService) UpdateUser(ctx context.Context, userDTO dto.UserUpdateRequest) error {
