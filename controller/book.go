@@ -104,6 +104,7 @@ func (bc *bookController) CreateBook(ctx *gin.Context) {
 	}
 
 	var mediaRequests []dto.MediaRequest
+
 	for i := 0; ; i++ {
 		title := ctx.PostForm(fmt.Sprintf("Pages[%d].Title", i))
 		if title == "" {
@@ -120,23 +121,34 @@ func (bc *bookController) CreateBook(ctx *gin.Context) {
 				break
 			}
 
-			iframe := ctx.PostForm(fmt.Sprintf("Pages[%d].Iframes[%d]", i, j))
-			worksheetID, _ := strconv.Atoi(ctx.PostForm(fmt.Sprintf("WS[%d].id[%d]", i, j)))
-			worksheetID2, _ := strconv.Atoi(ctx.PostForm(fmt.Sprintf("WS[%d].id2[%d]", i, j)))
+			files = append(files, dto.Files{Index: j, Images: file})
+		}
 
+		for h := 0; ; h++ {
+			iframe := ctx.PostForm(fmt.Sprintf("Pages[%d].Iframes[%d]", i, h))
+			iframes = append(iframes, dto.IFrames{Index: h, Iframe: iframe})
+			if iframe == "" {
+				break
+			}
+		}
+
+		for k := 0; ; k++ {
+			worksheetID, _ := strconv.Atoi(ctx.PostForm(fmt.Sprintf("WS[%d].id[%d]", i, k)))
+			worksheetID2, _ := strconv.Atoi(ctx.PostForm(fmt.Sprintf("WS[%d].id2[%d]", i, k)))
+			String_Code := ctx.PostForm(fmt.Sprintf("WS[%d].code[%d]", i, k))
+			String_Code2 := ctx.PostForm(fmt.Sprintf("WS[%d].code2[%d]", i, k))
+			String_Code3 := ctx.PostForm(fmt.Sprintf("WS[%d].code3[%d]", i, k))
 			worksheets = append(worksheets, dto.Worksheet{
 				Worksheet_ID:  worksheetID,
-				String_Code:   ctx.PostForm(fmt.Sprintf("WS[%d].code[%d]", i, j)),
+				String_Code:   String_Code,
 				Worksheet_ID2: worksheetID2,
-				String_Code2:  ctx.PostForm(fmt.Sprintf("WS[%d].code2[%d]", i, j)),
-				String_Code3:  ctx.PostForm(fmt.Sprintf("WS[%d].code3[%d]", i, j)),
+				String_Code2:  String_Code2,
+				String_Code3:  String_Code3,
 			})
 
-			if iframe != "" {
-				iframes = append(iframes, dto.IFrames{Index: j, Iframe: iframe})
+			if String_Code == "" {
+				break
 			}
-
-			files = append(files, dto.Files{Index: j, Images: file})
 		}
 
 		mediaRequests = append(mediaRequests, dto.MediaRequest{
@@ -150,14 +162,14 @@ func (bc *bookController) CreateBook(ctx *gin.Context) {
 
 	req.MediaRequest = mediaRequests
 
-	// Page, err := bc.bookService.CreateBook(ctx, req)
-	// if err != nil {
-	// 	res := utils.BuildResponseFailed("Failed to create Books", err.Error(), utils.EmptyObj{})
-	// 	ctx.JSON(http.StatusBadRequest, res)
-	// 	return
-	// }
+	Page, err := bc.bookService.CreateBook(ctx, req)
+	if err != nil {
+		res := utils.BuildResponseFailed("Failed to create Books", err.Error(), utils.EmptyObj{})
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
 
-	res := utils.BuildResponseSuccess("Successfully create Books", req)
+	res := utils.BuildResponseSuccess("Successfully create Books", Page)
 	ctx.JSON(http.StatusOK, res)
 }
 
