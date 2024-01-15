@@ -124,7 +124,8 @@ func (us *userService) ForgotPassword(ctx context.Context, user entities.User) (
 }
 
 func (us *userService) UpdateUserPassword(ctx context.Context, userID string, newPassword string) error {
-	return us.userRepository.UpdateUserPassword(ctx, userID, newPassword)
+	newpass, _ := helpers.HashPassword(newPassword)
+	return us.userRepository.UpdateUserPassword(ctx, userID, newpass)
 }
 
 func (us *userService) UpdateUser(ctx context.Context, userDTO dto.UserUpdateRequest) error {
