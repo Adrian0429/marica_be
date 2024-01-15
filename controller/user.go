@@ -150,10 +150,16 @@ func (uc *userController) UpdateUser(ctx *gin.Context) {
 }
 
 func (uc *userController) ResetPassword(ctx *gin.Context) {
-	userID := ctx.PostForm("uid")
+	token := ctx.MustGet("token").(string)
+	userID, err := uc.jwtService.GetIDByToken(token)
+	if err != nil {
+		res := utils.BuildResponseFailed("Gagal Memproses Request", "Token Tidak Valid", nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
 	newPassword := ctx.PostForm("pass")
 
-	err := uc.userService.UpdateUserPassword(ctx, userID, newPassword)
+	err = uc.userService.UpdateUserPassword(ctx, userID.String(), newPassword)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to reset password"})
 		return
@@ -164,7 +170,6 @@ func (uc *userController) ResetPassword(ctx *gin.Context) {
 
 func (uc *userController) ForgotPassword(ctx *gin.Context) {
 	email := ctx.PostForm("email")
-
 	user, err := uc.userService.GetUserByEmail(ctx, email)
 	if err != nil {
 		res := utils.BuildResponseFailed("Email tidak valid", "Email Tidak Valid", nil)
@@ -187,13 +192,15 @@ func (uc *userController) HandleForgotPassword(ctx *gin.Context) {
 	token := ctx.PostForm("token")
 
 	checkToken, err := uc.userService.CheckToken(ctx, token)
-	if err != nil {
+	if err != nil || checkToken.Token == "" {
 		res := utils.BuildResponseFailed("token telah habis masa aktif", "token telah habis masa aktif", nil)
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
 		return
 	}
 
-	result := utils.BuildResponseSuccess("Berhasil mengirim email token", checkToken)
+	Authtoken := uc.jwtService.GenerateTokenForgot(checkToken.UserID, "user")
+
+	result := utils.BuildResponseSuccess("Token Valid!", Authtoken)
 	ctx.JSON(http.StatusOK, result)
 }
 

@@ -12,6 +12,7 @@ import (
 
 type JWTService interface {
 	GenerateToken(id uuid.UUID, role string) string
+	GenerateTokenForgot(id uuid.UUID, role string) string
 	ValidateToken(token string) (*jwt.Token, error)
 	GetIDByToken(token string) (uuid.UUID, error)
 	// GetMandorIDByToken(token string) (uuid.UUID, error)
@@ -47,12 +48,35 @@ func (j *jwtService) GenerateToken(id uuid.UUID, role string) string {
 	return j.GeneratedToken(id, role)
 }
 
+func (j *jwtService) GenerateTokenForgot(id uuid.UUID, role string) string {
+	return j.GeneratedToken(id, role)
+}
+
 func (j *jwtService) GeneratedToken(id uuid.UUID, role string) string {
 	claims := jwtCustomClaim{
 		id,
 		role,
 		jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 240)),
+			Issuer:    j.issuer,
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tx, err := token.SignedString([]byte(j.secretKey))
+	if err != nil {
+		log.Println(err)
+	}
+	return tx
+}
+
+func (j *jwtService) GeneratedTokenForgot(id uuid.UUID, role string) string {
+	claims := jwtCustomClaim{
+		id,
+		role,
+		jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 3)),
 			Issuer:    j.issuer,
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 		},

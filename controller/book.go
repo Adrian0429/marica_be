@@ -103,66 +103,61 @@ func (bc *bookController) CreateBook(ctx *gin.Context) {
 		Thumbnail:   thumbnail,
 	}
 
+	var mediaRequests []dto.MediaRequest
 	for i := 0; ; i++ {
-		filesUploaded := false
-		var medias dto.MediaRequest
-		medias.Index = i
-		medias.Title = ctx.PostForm("Pages[" + strconv.Itoa(i) + "].Title")
-		for j := 0; ; j++ {
-			photo, err := ctx.FormFile("Pages[" + strconv.Itoa(i) + "].Files[" + strconv.Itoa(j) + "]")
-			if err != nil {
-				break
-			}
-			iframe := ctx.PostForm("Iframe[" + strconv.Itoa(i) + "].Files[" + strconv.Itoa(j) + "]")
-
-			id1, err := strconv.Atoi(ctx.PostForm("WS[" + strconv.Itoa(i) + "].id[" + strconv.Itoa(j) + "]"))
-			id2, err := strconv.Atoi(ctx.PostForm("WS[" + strconv.Itoa(i) + "].id2[" + strconv.Itoa(j) + "]"))
-			WS_Input := dto.Worksheet{
-				Worksheet_ID:  id1,
-				String_Code:   ctx.PostForm("WS[" + strconv.Itoa(i) + "].code[" + strconv.Itoa(j) + "]"),
-				Worksheet_ID2: id2,
-				String_Code2:  ctx.PostForm("WS[" + strconv.Itoa(i) + "].code2[" + strconv.Itoa(j) + "]"),
-				String_Code3:  ctx.PostForm("WS[" + strconv.Itoa(i) + "].code3[" + strconv.Itoa(j) + "]"),
-			}
-
-			Iframes := dto.IFrames{
-				Index:  j,
-				Iframe: iframe,
-			}
-
-			files := dto.Files{
-				Index:  j,
-				Images: photo,
-			}
-
-			medias.Files = append(medias.Files, files)
-
-			if iframe != "" {
-				medias.IFrames = append(medias.IFrames, Iframes)
-			}
-
-			if WS_Input.String_Code != "" {
-				medias.Worksheet = append(medias.Worksheet, WS_Input)
-			}
-
-			filesUploaded = true
-		}
-
-		if !filesUploaded {
+		title := ctx.PostForm(fmt.Sprintf("Pages[%d].Title", i))
+		if title == "" {
 			break
 		}
 
-		req.MediaRequest = append(req.MediaRequest, medias)
+		var files []dto.Files
+		var iframes []dto.IFrames
+		var worksheets []dto.Worksheet
+
+		for j := 0; ; j++ {
+			file, err := ctx.FormFile(fmt.Sprintf("Pages[%d].Files[%d]", i, j))
+			if err != nil {
+				break
+			}
+
+			iframe := ctx.PostForm(fmt.Sprintf("Pages[%d].Iframes[%d]", i, j))
+			worksheetID, _ := strconv.Atoi(ctx.PostForm(fmt.Sprintf("WS[%d].id[%d]", i, j)))
+			worksheetID2, _ := strconv.Atoi(ctx.PostForm(fmt.Sprintf("WS[%d].id2[%d]", i, j)))
+
+			worksheets = append(worksheets, dto.Worksheet{
+				Worksheet_ID:  worksheetID,
+				String_Code:   ctx.PostForm(fmt.Sprintf("WS[%d].code[%d]", i, j)),
+				Worksheet_ID2: worksheetID2,
+				String_Code2:  ctx.PostForm(fmt.Sprintf("WS[%d].code2[%d]", i, j)),
+				String_Code3:  ctx.PostForm(fmt.Sprintf("WS[%d].code3[%d]", i, j)),
+			})
+
+			if iframe != "" {
+				iframes = append(iframes, dto.IFrames{Index: j, Iframe: iframe})
+			}
+
+			files = append(files, dto.Files{Index: j, Images: file})
+		}
+
+		mediaRequests = append(mediaRequests, dto.MediaRequest{
+			Index:     i,
+			Title:     title,
+			Files:     files,
+			IFrames:   iframes,
+			Worksheet: worksheets,
+		})
 	}
 
-	Page, err := bc.bookService.CreateBook(ctx, req)
-	if err != nil {
-		res := utils.BuildResponseFailed("Failed to create Books", err.Error(), utils.EmptyObj{})
-		ctx.JSON(http.StatusBadRequest, res)
-		return
-	}
+	req.MediaRequest = mediaRequests
 
-	res := utils.BuildResponseSuccess("Successfully create Books", Page)
+	// Page, err := bc.bookService.CreateBook(ctx, req)
+	// if err != nil {
+	// 	res := utils.BuildResponseFailed("Failed to create Books", err.Error(), utils.EmptyObj{})
+	// 	ctx.JSON(http.StatusBadRequest, res)
+	// 	return
+	// }
+
+	res := utils.BuildResponseSuccess("Successfully create Books", req)
 	ctx.JSON(http.StatusOK, res)
 }
 

@@ -23,7 +23,7 @@ func User(route *gin.Engine, UserController controller.UserController, jwtServic
 		routes.GET("/mybooks", middleware.Authenticate(jwtService), BookController.GetUserBooks)
 		routes.POST("/forgotpassword", UserController.ForgotPassword)
 		routes.POST("/handleForgotPassword", UserController.HandleForgotPassword)
-		routes.POST("/ResetPassword", UserController.ResetPassword)
+		routes.POST("/ResetPassword", middleware.Authenticate(jwtService), UserController.ResetPassword)
 	}
 
 	medias := route.Group("/api/media")
