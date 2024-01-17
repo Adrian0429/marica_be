@@ -44,9 +44,9 @@ type (
 	}
 
 	Worksheet struct {
-		Worksheet_ID  int    `gorm:"type:integer" json:"worksheet_id"`
+		Worksheet_ID  int    `gorm:"type:integer" json:"Worksheet_ID"`
 		String_Code   string `gorm:"type:varchar(255)" json:"String_Code"`
-		Worksheet_ID2 int    `gorm:"type:integer" json:"worksheet_id2"`
+		Worksheet_ID2 int    `gorm:"type:integer" json:"Worksheet_ID2"`
 		String_Code2  string `gorm:"type:varchar(255)" json:"String_Code2"`
 		String_Code3  string `gorm:"type:varchar(255)" json:"String_Code3"`
 	}

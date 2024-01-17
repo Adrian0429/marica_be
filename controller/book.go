@@ -133,11 +133,11 @@ func (bc *bookController) CreateBook(ctx *gin.Context) {
 		}
 
 		for k := 0; ; k++ {
-			worksheetID, _ := strconv.Atoi(ctx.PostForm(fmt.Sprintf("WS[%d].id[%d]", i, k)))
-			worksheetID2, _ := strconv.Atoi(ctx.PostForm(fmt.Sprintf("WS[%d].id2[%d]", i, k)))
-			String_Code := ctx.PostForm(fmt.Sprintf("WS[%d].code[%d]", i, k))
-			String_Code2 := ctx.PostForm(fmt.Sprintf("WS[%d].code2[%d]", i, k))
-			String_Code3 := ctx.PostForm(fmt.Sprintf("WS[%d].code3[%d]", i, k))
+			worksheetID, _ := strconv.Atoi(ctx.PostForm(fmt.Sprintf("Pages[%d].id[%d]", i, k)))
+			worksheetID2, _ := strconv.Atoi(ctx.PostForm(fmt.Sprintf("Pages[%d].id2[%d]", i, k)))
+			String_Code := ctx.PostForm(fmt.Sprintf("Pages[%d].code[%d]", i, k))
+			String_Code2 := ctx.PostForm(fmt.Sprintf("Pages[%d].code2[%d]", i, k))
+			String_Code3 := ctx.PostForm(fmt.Sprintf("Pages[%d].code3[%d]", i, k))
 			worksheets = append(worksheets, dto.Worksheet{
 				Worksheet_ID:  worksheetID,
 				String_Code:   String_Code,
